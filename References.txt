@@ -1,0 +1,6 @@
+correcting tilt:
+    https://avilpage.com/2016/11/detect-correct-skew-images-python.html
+
+papers:
+    https://sci-hub.tw/https://ieeexplore.ieee.org/document/6518645
+    https://sci-hub.tw/https://ieeexplore.ieee.org/document/6633980
