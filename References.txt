@@ -1,6 +1,8 @@
-correcting tilt:
+skew correction:
     https://avilpage.com/2016/11/detect-correct-skew-images-python.html
 
+    correction with minimum bounding rect:
+    https://www.pyimagesearch.com/2017/02/20/text-skew-correction-opencv-python/
 papers:
     https://sci-hub.tw/https://ieeexplore.ieee.org/document/6518645
     https://sci-hub.tw/https://ieeexplore.ieee.org/document/6633980

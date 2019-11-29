@@ -7,6 +7,7 @@ def find_score(arr, angle):
     score = np.sum((hist[1:] - hist[:-1]) ** 2)
     return score
 
+#using for loops we will not use it IGNORE
 def adjust_tilt(img):
     bin_img=img.copy()
     bin_img = 1 - (bin_img / 255.0)
@@ -25,6 +26,24 @@ def adjust_tilt(img):
 
     return corrected_img
 
+def correct_skew(img):
+    thresh=img.copy()
+    thresh=1-(thresh/255)
+
+    coords = np.column_stack(np.where(thresh > 0))
+
+    angle = cv2.minAreaRect(coords)[-1]
+    if angle < -45:
+        angle = -(90 + angle)
+    else:
+        angle=-angle
+
+    (h, w) = img.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(img, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    rotated=1-(rotated/255)
+    return rotated
 
 
 def line_segmentation(img):

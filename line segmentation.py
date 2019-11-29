@@ -11,17 +11,18 @@ from commonfunctions import *
 from preprocessing import *
 import cv2
 
+#reading the image
 img=io.imread("scanned\capr6.png")
 
-
-corrected=adjust_tilt(img)
-
+#skew correct with bounding rect
+corrected=correct_skew(img)
+#indices of lines
 lines_indices=line_segmentation(corrected)
-
+#image with lines
 lines_segmented=corrected.copy()
 lines_segmented[lines_indices]=0.5
-
-viewer=CollectionViewer([corrected,lines_segmented])
+#viewing the images
+viewer=CollectionViewer([img, 1-corrected, lines_segmented])
 viewer.show()
-#show_images([img,corrected,divided])
+
 
