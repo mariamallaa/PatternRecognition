@@ -3,34 +3,6 @@ from scipy.ndimage import interpolation as inter
 import cv2
 
 
-def find_score(arr, angle):
-    data = inter.rotate(arr, angle, reshape=False, order=0)
-    hist = np.sum(data, axis=1)
-    score = np.sum((hist[1:] - hist[:-1]) ** 2)
-    return score
-
-
-# using for loops we will not use it IGNORE
-def adjust_tilt(img):
-    bin_img = img.copy()
-    bin_img = 1 - (bin_img / 255.0)
-
-    delta = 1
-    limit = 5
-    angles = np.arange(-limit, limit + delta, delta)
-    scores = []
-    for angle in angles:
-        score = find_score(bin_img, angle)
-        scores.append(score)
-
-    best_score = max(scores)
-    best_angle = angles[scores.index(best_score)]
-    corrected_img = inter.rotate(bin_img, best_angle, reshape=False, order=0)
-    #corrected_img= np.round(corrected_img)
-
-    return corrected_img
-
-
 def correct_skew(img):
     thresh = img.copy()
     thresh = 1 - (thresh / 255)
@@ -50,6 +22,7 @@ def correct_skew(img):
         img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
     )
     rotated = 1 - (rotated / 255)
+   # rotated = np.round(rotated)
     return rotated
 
 
