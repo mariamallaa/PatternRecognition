@@ -21,8 +21,8 @@ def correct_skew(img):
     rotated = cv2.warpAffine(
         img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
     )
-    rotated = 1 - (rotated / 255)
-   # rotated = np.round(rotated)
+    # rotated = 1 - (rotated / 255)
+    # rotated = np.round(rotated)
     return rotated
 
 
@@ -89,7 +89,7 @@ def words_segmentation(img, lines):
     for i in range(len(lines) - 1):
         line = img[lines[i] : lines[i + 1], :]
         projection = np.sum(line, axis=0)
-        projection = np.convolve(projection, np.array([1,1]), "same")
+        projection = np.convolve(projection, np.array([1, 1]), "same")
         indices = segments_indices(projection)
 
         words_rects.append(indices)
