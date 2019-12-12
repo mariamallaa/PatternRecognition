@@ -89,7 +89,7 @@ def words_segmentation(img, lines):
     for i in range(len(lines) - 1):
         line = img[lines[i] : lines[i + 1], :]
         projection = np.sum(line, axis=0)
-        projection = np.convolve(projection, np.array([1, 1]), "same")
+        projection = np.convolve(projection, np.array([1,1]), "same")
         indices = segments_indices(projection)
 
         words_rects.append(indices)

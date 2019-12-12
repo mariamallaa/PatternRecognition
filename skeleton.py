@@ -10,7 +10,7 @@ import numpy as np
 from commonfunctions import *
 from preprocessing import *
 import cv2
-from skimage.morphology import thin
+from skimage.morphology import thin, skeletonize
 from scipy import stats
 
 # reading the image
@@ -43,51 +43,53 @@ for i in range(len(lines_indices) - 1):
 
 
 # separating words using indices
-first = binary[
+word = binary[
     # lines_indices[2] : lines_indices[3],separators[2][4] : separators[2][5]
     # lines_indices[7] : lines_indices[8],separators[7][2] : separators[7][3]
-    lines_indices[0] : lines_indices[1],
-    separators[0][1] : separators[0][2],
+    # lines_indices[0] : lines_indices[1],separators[0][1] : separators[0][2],
     # lines_indices[5] : lines_indices[6],separators[5][7] : separators[5][8]
     # lines_indices[1] : lines_indices[2],separators[1][9] : separators[1][10],
     # lines_indices[1] : lines_indices[2],separators[1][12] : separators[1][13],
     # lines_indices[3] : lines_indices[4],separators[3][6] : separators[3][7],
     # lines_indices[1] : lines_indices[2],separators[1][8] : separators[1][9],
-    # lines_indices[4] : lines_indices[5], separators[4][9] : separators[4][10],
+    # lines_indices[4] : lines_indices[5],separators[4][9] : separators[4][10],
     # lines_indices[0] : lines_indices[1],separators[0][8] : separators[0][9],
-    # lines_indices[0] : lines_indices[1],separators[0][0] : separators[0][1],
+    lines_indices[0] : lines_indices[1],
+    separators[0][0] : separators[0][1],
     # lines_indices[1] : lines_indices[2],separators[1][4] : separators[1][5],
     # lines_indices[2] : lines_indices[3],separators[2][9] : separators[2][10],
+    # lines_indices[1] : lines_indices[2],separators[1][0] : separators[1][1],
 ]
 
 # character segmentation for a word
-kernel = np.ones((2, 2), np.uint8)
-closed = cv2.morphologyEx(first, cv2.MORPH_CLOSE, kernel)
+
+skeletonedWord = skeletonize(word).astype(np.float)
 
 # finding baseline index
-projection = np.sum(first, axis=1)
+projection = np.sum(skeletonedWord, axis=1)
 baselineIndex = np.argmax(projection)
 
 # finding maximum transition index
 verticalChange = []
 for i in range(baselineIndex):
-    # print(np.where(first[i, :-1] != first[i, 1:])[0])
-    verticalChange.append(len(np.where(first[i, :-1] != first[i, 1:])[0]))
+    verticalChange.append(
+        len(np.where(skeletonedWord[i, :-1] != skeletonedWord[i, 1:])[0])
+    )
 verticalChange = np.asarray(verticalChange)
 maxChangeIndex = max(np.argmax(verticalChange), baselineIndex - 3)
-print(baselineIndex, maxChangeIndex)
+
 
 # getting separation region indices
 
-separationIndices = np.where(closed[maxChangeIndex, :-1] != closed[maxChangeIndex, 1:])[
-    0
-]
+separationIndices = np.where(
+    skeletonedWord[maxChangeIndex, :-1] != skeletonedWord[maxChangeIndex, 1:]
+)[0]
 separationIndices = separationIndices.reshape(-1, 2)
-# getting cut indices
 
-vp = np.sum(closed, axis=0)
-mvf = max(stats.mode(vp).mode[0], 2)
-print(mvf)
+# getting cut indices
+vp = np.sum(skeletonedWord, axis=0)
+mvf = stats.mode(vp[vp != 0]).mode[0]
+
 
 cutIndices = []
 for i in range(separationIndices.shape[0] - 1):
@@ -98,50 +100,55 @@ for i in range(separationIndices.shape[0] - 1):
         midRegion += 1
     if len(cutIndices) == 0:
         cutIndices.append(midRegion)
-    
-    elif midRegion - cutIndices[-1] != 1:
+    # 3ashan lamma el7oroof beyet2esem menha 7etta soghayara keda lwahdaha
+    elif midRegion - cutIndices[-1] > 2:
         cutIndices.append(midRegion)
 
 # strokes detection
 cutIndices.insert(0, 0)
-cutIndices.append(closed.shape[1] - 1)
+cutIndices.append(skeletonedWord.shape[1] - 1)
 cutIndices = list(dict.fromkeys(cutIndices))
-closedBaselineIndex = np.argmax(np.sum(closed, axis=1))
-# closedBaselineIndex = 23
-print(closedBaselineIndex)
-# print(cutIndices)
+baselineIndex = np.argmax(np.sum(skeletonedWord, axis=1))
+
 strokesIndices = []
 for i in range(len(cutIndices) - 1):
-    segment = closed[:, cutIndices[i] : cutIndices[i + 1]]
-    sumTopProjection = (np.sum(segment[0:closedBaselineIndex, :], axis=1)).sum()
-    sumBottomProjection = (np.sum(segment[closedBaselineIndex + 1 :, :], axis=1)).sum()
-    # print(segment)
-    # print(sumTopProjection, sumBottomProjection)
+    segment = skeletonedWord[:, cutIndices[i] : cutIndices[i + 1]]
+    sumTopProjection = (np.sum(segment[0:baselineIndex, :], axis=1)).sum()
+    sumBottomProjection = (np.sum(segment[baselineIndex + 1 :, :], axis=1)).sum()
     if sumTopProjection > sumBottomProjection:
-        vp = np.sum(segment[:closedBaselineIndex, :], axis=0)
-        # print(vp)
+        vp = np.sum(segment[:baselineIndex, :], axis=0)
         strokesHeight = np.max(vp)
-        # print(strokesHeight)
-        if strokesHeight < 0.25 * closedBaselineIndex:
-            hp = np.sum(segment[:closedBaselineIndex, :], axis=1)
+        if strokesHeight < 0.25 * baselineIndex:
+            hp = np.sum(segment[:baselineIndex, :], axis=1)
             hp = hp[hp != 0]
-
-            # print(segment[:closedBaselineIndex, :])
-            print(cutIndices[i], "mode", stats.mode(hp).mode[0])
+            
             if stats.mode(hp).mode[0] == mvf:
-                print(stats.mode(vp).mode[0], mvf)
-                strokesIndices.append(cutIndices[i])
+                
+                strokesIndices.append(i)
 
+for i in range(len(strokesIndices) - 2):
+    if (
+        strokesIndices[i + 2] - strokesIndices[i + 1] == 1
+        and strokesIndices[i + 1] - strokesIndices[i] == 1
+    ):
+        cutIndices.pop(strokesIndices[i + 2])
+        cutIndices.pop(strokesIndices[i + 1])
+        i = i + 2
+        # strokesIndices.pop(i + 2)
+        # strokesIndices.pop(i + 1)
 
-word = first.copy()
-first[:, cutIndices] = 0.5
-closed[:, cutIndices] = 0.5
-closed[:, strokesIndices] = 0.3
-print(strokesIndices)
+printWord = word.copy()
+word[:, cutIndices] = 0.5
+skeletonedWord[:, cutIndices] = 0.5
+strokes = []
+for i in range(len(strokesIndices)):
+    strokes.append(cutIndices[strokesIndices[i]])
+skeletonedWord[:, strokes] = 0.3
+
 
 # viewing the images
 viewer = CollectionViewer(
-    [img, 1 - corrected, lines_segmented, words, word, first, closed]
+    [img, 1 - corrected, lines_segmented, words, printWord, word, skeletonedWord]
 )
 viewer.show()
 
