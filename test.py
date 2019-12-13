@@ -180,7 +180,7 @@ def character_segmentation(wordSkeleton, baselineIndex):
                     strokesIndices.append(i)
             elif len(strokesIndices) >= 2:
                 if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
-                    if strokesHeight < 2 * h:
+                    if strokesHeight <=4:
                         print(cutIndices[i], "passed condition4")
                         hp = np.sum(segment[:baselineIndex, :], axis=1)
                         hp = hp[hp != 0]
@@ -199,19 +199,35 @@ def character_segmentation(wordSkeleton, baselineIndex):
     # make seen one letter instead of 3
 
     # print(len(strokesIndices))
+    # if len(strokesIndices) > 2:
+    #     i = 0
+    #     while i <= len(strokesIndices) - 3:
+    #         print(i)
+    #         if (
+    #             strokesIndices[i + 2] - strokesIndices[i + 1] == 1
+    #             and strokesIndices[i + 1] - strokesIndices[i] == 1
+    #         ):
+    #             print("popping")
+    #             cutIndices.pop(strokesIndices[i + 2])
+    #             cutIndices.pop(strokesIndices[i + 1])
+
+    #             i += 2
+    #         i += 1
+
     if len(strokesIndices) > 2:
-        i = 0
-        while i <= len(strokesIndices) - 3:
+        i = len(strokesIndices) - 1
+        while i >= 2:
+            #
             print(i)
             if (
-                strokesIndices[i + 2] - strokesIndices[i + 1] == 1
-                and strokesIndices[i + 1] - strokesIndices[i] == 1
+                strokesIndices[i] - strokesIndices[i - 1] == 1
+                and strokesIndices[i - 1] - strokesIndices[i - 2] == 1
             ):
                 print("popping")
-                cutIndices.pop(strokesIndices[i + 2])
-                cutIndices.pop(strokesIndices[i + 1])
+                cutIndices.pop(strokesIndices[i])
+                cutIndices.pop(strokesIndices[i - 1])
 
-                i += 2
-            i += 1
+                i -= 2
+            i -= 1
 
     return strokes, cutIndices
