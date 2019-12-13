@@ -49,7 +49,7 @@ for i in range(len(lines_indices) - 1):
 
 # separating words using indices
 word = binary[
-    lines_indices[6] : lines_indices[7], separators[6][6] : separators[6][7],
+    lines_indices[0] : lines_indices[1], separators[0][4] : separators[0][5],
 ]
 
 # character segmentation for a word
@@ -134,7 +134,7 @@ for i in range(length):
             if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
                 print("passed special")
                 print(h, strokesHeight)
-                if strokesHeight <= 4:
+                if strokesHeight <= 5:
                     print(cutIndices[i], "passed condition4")
                     hp = np.sum(segment[:baselineIndex, :], axis=1)
                     hp = hp[hp != 0]
