@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 from commonfunctions import *
-from preprocessing import *
+
+# from preprocessing import *
+from test import *
 import cv2
 from skimage.morphology import thin, skeletonize
 from scipy import stats
@@ -49,19 +51,20 @@ for i in range(len(lines_indices) - 1):
 words = []
 for i in range(len(lines_indices) - 1):
     # finding baseline index for the entire line
-    # baselineIndex = np.argmax(
-    #     np.sum(binary[lines_indices[i] : lines_indices[i + 1], :], axis=1)
-    # )
-    for j in range(len(separators[i])-1, 1, -1):
+    line = binary[lines_indices[i] : lines_indices[i + 1]]
+    projection = np.sum(line, axis=1)
+    line = line[projection != 0]
+    baselineIndex = np.argmax(np.sum(line, axis=1))
+    for j in range(len(separators[i]) - 1, 0, -1):
         # separating words using indices
-        word = binary[
-            lines_indices[i] : lines_indices[i + 1],
-            separators[i][j - 1] : separators[i][j],
+        word = line[
+            :, separators[i][j - 1] : separators[i][j],
         ]
         # character segmentation for a word
         wordSkeleton = skeletonize(word).astype(np.float)
-        cutIndices = character_segmentation(wordSkeleton)
+        strokes, cutIndices = character_segmentation(wordSkeleton, baselineIndex)
         words.append([wordSkeleton, cutIndices])
+        # wordSkeleton[:, strokes] = 0.3
         wordSkeleton[:, cutIndices] = 0.5
         view = ImageViewer(wordSkeleton)
         view.show()

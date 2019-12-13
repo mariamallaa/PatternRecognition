@@ -157,7 +157,7 @@ def character_segmentation(wordSkeleton, baselineIndex):
             print(cutIndices[i], "passed condition1")
             h = np.sort(np.sum(segment, axis=1))[::-1][0]
 
-            if strokesHeight < h:
+            if strokesHeight <= h:
                 print(cutIndices[i], "passed condition2 strokes Height=", strokesHeight)
                 hp = np.sum(segment[:baselineIndex, :], axis=1)
                 hp = hp[hp != 0]
@@ -167,7 +167,7 @@ def character_segmentation(wordSkeleton, baselineIndex):
                     strokesIndices.append(i)
             elif len(strokesIndices) >= 2:
                 if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
-                    if strokesHeight < 2 * h:
+                    if strokesHeight < 2* h:
                         print(cutIndices[i], "passed condition4")
                         hp = np.sum(segment[:baselineIndex, :], axis=1)
                         hp = hp[hp != 0]
@@ -180,17 +180,20 @@ def character_segmentation(wordSkeleton, baselineIndex):
     for i in range(len(strokesIndices)):
         strokes.append(cutIndices[strokesIndices[i]])
     # check that last letter is not split
-
+    # wordBaseLine = max(np.argmax(np.sum(wordSkeleton, axis=1)), baselineIndex)
+    # print(baselineIndex, wordBaseLine)
     lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
     if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
         np.sum(lastSegment[0:baselineIndex, :], axis=1)
     ).sum():
 
         cutIndices.pop(1)
-    # elif np.max(np.sum(lastSegment[0:baselineIndex, :], axis=0)) < 0.5 * baselineIndex and (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() < (
-    #     np.sum(lastSegment[0:baselineIndex, :], axis=1)
-    # ).sum():
-    #     cutIndices.pop(1)
+    elif (
+        np.max(np.sum(lastSegment[0:baselineIndex, :], axis=0)) < 0.5 * baselineIndex
+        and (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum()
+        < (np.sum(lastSegment[0:baselineIndex, :], axis=1)).sum()
+    ):
+        cutIndices.pop(1)
 
     # make seen one letter instead of 3
 
