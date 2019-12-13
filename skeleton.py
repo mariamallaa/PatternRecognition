@@ -49,7 +49,7 @@ for i in range(len(lines_indices) - 1):
 
 # separating words using indices
 word = binary[
-    lines_indices[0] : lines_indices[1], separators[0][1] : separators[0][2],
+    lines_indices[0] : lines_indices[1], separators[0][-2] : separators[0][-1],
 ]
 
 # character segmentation for a word
