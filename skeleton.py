@@ -49,7 +49,7 @@ for i in range(len(lines_indices) - 1):
 
 # separating words using indices
 word = binary[
-    lines_indices[0] : lines_indices[1], separators[0][-2] : separators[0][-1],
+    lines_indices[1] : lines_indices[2], separators[1][1] : separators[1][2],
 ]
 
 # character segmentation for a word
@@ -121,7 +121,7 @@ for i in range(length):
         print(cutIndices[i], "passed condition1")
         h = np.sort(np.sum(segment, axis=1))[::-1][0]
 
-        if strokesHeight < h:
+        if strokesHeight <= h:
             print(cutIndices[i], "passed condition2 strokes Height=", strokesHeight)
             hp = np.sum(segment[:baselineIndex, :], axis=1)
             hp = hp[hp != 0]
@@ -130,8 +130,10 @@ for i in range(length):
                 print(cutIndices[i], "passed condition3")
                 strokesIndices.append(i)
         elif len(strokesIndices) >= 2:
+            print("Special", i)
             if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
-                if strokesHeight < 2 * h:
+                print("passed special")
+                if strokesHeight <= 2 * h:
                     print(cutIndices[i], "passed condition4")
                     hp = np.sum(segment[:baselineIndex, :], axis=1)
                     hp = hp[hp != 0]
@@ -142,19 +144,20 @@ for i in range(length):
 
 # check that last letter is not split
 
-lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
-if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
-    np.sum(lastSegment[0:baselineIndex, :], axis=1)
-).sum():
-
-    cutIndices.pop(1)
 
 # make seen one letter instead of 3
 
-print(len(strokesIndices))
+
+print(baselineIndex)
+print(strokesIndices)
+strokes = []
+for i in range(len(strokesIndices)):
+    strokes.append(cutIndices[strokesIndices[i]])
+
 if len(strokesIndices) > 2:
     i = 0
-    while i < len(strokesIndices) - 3:
+    while i <= len(strokesIndices) - 3:
+        #
         print(i)
         if (
             strokesIndices[i + 2] - strokesIndices[i + 1] == 1
@@ -165,16 +168,20 @@ if len(strokesIndices) > 2:
             cutIndices.pop(strokesIndices[i + 1])
 
             i += 2
+        i += 1
 
+lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
+if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
+    np.sum(lastSegment[0:baselineIndex, :], axis=1)
+).sum():
+
+    cutIndices.pop(1)
 
 printWord = word.copy()
-word[:, cutIndices] = 0.5
-wordSkeleton[:, cutIndices] = 0.5
-# strokes = []
-# for i in range(len(strokesIndices)):
-#     strokes.append(cutIndices[strokesIndices[i]])
-# wordSkeleton[:, strokes] = 0.3
 
+
+# wordSkeleton[:, strokes] = 0.3
+wordSkeleton[:, cutIndices] = 0.5
 
 # viewing the images
 viewer = CollectionViewer(
