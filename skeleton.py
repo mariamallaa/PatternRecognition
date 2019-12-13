@@ -190,8 +190,13 @@ if len(strokesIndices) > 2:
 lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
 if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
     np.sum(lastSegment[0:baselineIndex, :], axis=1)
+).sum() and 2 in strokesIndices:
+    cutIndices.pop(3)
+    cutIndices.pop(2)
+    cutIndices.pop(1)
+elif (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
+    np.sum(lastSegment[0:baselineIndex, :], axis=1)
 ).sum():
-
     cutIndices.pop(1)
 
 printWord = word.copy()
