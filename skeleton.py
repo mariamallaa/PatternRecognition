@@ -151,27 +151,29 @@ if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
 
 # make seen one letter instead of 3
 
-# print(len(strokesIndices))
-# if len(strokesIndices) > 2:
-#     for i in range(len(strokesIndices) - 2):
-#         print(i)
-#         if (
-#             strokesIndices[i + 2] - strokesIndices[i + 1] == 1
-#             and strokesIndices[i + 1] - strokesIndices[i] == 1
-#         ):
-#             cutIndices.pop(strokesIndices[i + 2])
-#             cutIndices.pop(strokesIndices[i + 1])
+print(len(strokesIndices))
+if len(strokesIndices) > 2:
+    i = 0
+    while i < len(strokesIndices) - 3:
+        print(i)
+        if (
+            strokesIndices[i + 2] - strokesIndices[i + 1] == 1
+            and strokesIndices[i + 1] - strokesIndices[i] == 1
+        ):
+            print("popping")
+            cutIndices.pop(strokesIndices[i + 2])
+            cutIndices.pop(strokesIndices[i + 1])
 
-#             i += 2
+            i += 2
 
 
 printWord = word.copy()
 word[:, cutIndices] = 0.5
 wordSkeleton[:, cutIndices] = 0.5
-strokes = []
-for i in range(len(strokesIndices)):
-    strokes.append(cutIndices[strokesIndices[i]])
-wordSkeleton[:, strokes] = 0.3
+# strokes = []
+# for i in range(len(strokesIndices)):
+#     strokes.append(cutIndices[strokesIndices[i]])
+# wordSkeleton[:, strokes] = 0.3
 
 
 # viewing the images
