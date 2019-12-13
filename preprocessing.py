@@ -98,7 +98,8 @@ def words_segmentation(img, lines):
     return words_rects
 
 
-def character_segmentation(wordSkeleton, baselineIndex):
+def character_segmentation(wordSkeleton):
+    baselineIndex = np.argmax(np.sum(wordSkeleton, axis=1))
     # finding maximum transition index
     verticalChange = []
     for i in range(baselineIndex):
@@ -198,5 +199,5 @@ def character_segmentation(wordSkeleton, baselineIndex):
                 cutIndices.pop(strokesIndices[i + 1])
 
                 i += 2
-    
+
     return cutIndices
