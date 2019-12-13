@@ -16,6 +16,7 @@ from scipy import stats
 # reading the image
 img = io.imread("scanned\capr2.png")
 
+#
 # img = io.imread("scanned\csep1635.png")
 
 # skew correct with bounding rect
@@ -32,13 +33,13 @@ lines_segmented = corrected.copy()
 lines_segmented[lines_indices] = 0.5
 
 # images into words
-separators = words_segmentation(corrected, lines_indices)
+separators = words_segmentation(binary, lines_indices)
 # drawing rectangles around words
-words = binary.copy()
+wordsRects = binary.copy()
 for i in range(len(lines_indices) - 1):
     for j in range(len(separators[i]) - 1):
-        words = cv2.rectangle(
-            words,
+        wordsRects = cv2.rectangle(
+            wordsRects,
             (separators[i][j], lines_indices[i]),
             (separators[i][j + 1], lines_indices[i + 1]),
             0.5,
@@ -48,22 +49,7 @@ for i in range(len(lines_indices) - 1):
 
 # separating words using indices
 word = binary[
-    # lines_indices[2] : lines_indices[3],separators[2][4] : separators[2][5]
-    # lines_indices[7] : lines_indices[8],separators[7][2] : separators[7][3]
-    # lines_indices[0] : lines_indices[1],separators[0][1] : separators[0][2],
-    # lines_indices[5] : lines_indices[6],separators[5][7] : separators[5][8]
-    # lines_indices[1] : lines_indices[2],separators[1][9] : separators[1][10],
-    # lines_indices[1] : lines_indices[2],separators[1][12] : separators[1][13],
-    # lines_indices[3] : lines_indices[4],separators[3][6] : separators[3][7],
-    # lines_indices[1] : lines_indices[2],separators[1][8] : separators[1][9],
-    # lines_indices[4] : lines_indices[5],separators[4][9] : separators[4][10],
-    # lines_indices[0] : lines_indices[1],separators[0][8] : separators[0][9],
-    # lines_indices[0] : lines_indices[1],separators[0][0] : separators[0][1],
-    # lines_indices[1] : lines_indices[2],separators[1][3] : separators[1][4],
-    # lines_indices[2] : lines_indices[3],separators[2][9] : separators[2][10],
-    lines_indices[1] : lines_indices[2],
-    separators[1][0] : separators[1][1],
-    # lines_indices[2] : lines_indices[3],separators[2][4] : separators[2][5],
+    lines_indices[0] : lines_indices[1], separators[0][1] : separators[0][2],
 ]
 
 # character segmentation for a word
@@ -92,56 +78,83 @@ separationIndices = separationIndices.reshape(-1, 2)
 # getting cut indices
 vp = np.sum(wordSkeleton, axis=0)
 mvf = stats.mode(vp[vp != 0]).mode[0]
-
-
+vpAbove = np.sum(wordSkeleton[:baselineIndex, :])
+vpBelow = np.sum(wordSkeleton[baselineIndex + 1 :, :])
 cutIndices = []
+cutIndices.append(0)
 for i in range(separationIndices.shape[0] - 1):
     midRegion = separationIndices[i, 1] + int(
         (separationIndices[i + 1, 0] - separationIndices[i, 1]) / 2
     )
     while vp[midRegion] > mvf:
         midRegion += 1
-    if len(cutIndices) == 0:
-        cutIndices.append(midRegion)
+
     # 3ashan lamma el7oroof beyet2esem menha 7etta soghayara keda lwahdaha
-    elif midRegion - cutIndices[-1] > 2:
-        cutIndices.append(midRegion)
+    if np.sum(wordSkeleton[:, cutIndices[-1] : midRegion]) > 3:
+        if midRegion - cutIndices[-1] > 2:
+            cutIndices.append(midRegion)
 
-# strokes detection
-cutIndices.insert(0, 0)
-cutIndices.append(wordSkeleton.shape[1] - 1)
+#
+if np.sum(wordSkeleton[:, cutIndices[-1] : wordSkeleton.shape[1]]) > 3:
+    cutIndices.append(wordSkeleton.shape[1] - 1)
+
 cutIndices = list(dict.fromkeys(cutIndices))
-baselineIndex = np.argmax(np.sum(wordSkeleton, axis=1))
+# strokes detection
 
+# baselineIndex = np.argmax(np.sum(wordSkeleton, axis=1))
+# using line to get line index not word
+# baselineIndex = np.argmax(
+#     np.sum(binary[lines_indices[0] : lines_indices[1], :], axis=1)
+# )
+print(baselineIndex)
 strokesIndices = []
 length = len(cutIndices) - 1
-for i in range(length):
-    # to remove el7etat elfadya w el7etat elsoghayara el me2atta3a
-    if np.sum(wordSkeleton[:, cutIndices[i] : cutIndices[i + 1]]) < 3:
-        cutIndices.pop(i + 1)
-        length -= 1
-    if i + 1 >= length:
-        break
 
+for i in range(length):
     segment = wordSkeleton[:, cutIndices[i] : cutIndices[i + 1]]
     sumTopProjection = (np.sum(segment[0:baselineIndex, :], axis=1)).sum()
     sumBottomProjection = (np.sum(segment[baselineIndex + 1 :, :], axis=1)).sum()
+
     if sumTopProjection > sumBottomProjection:
         vp = np.sum(segment[:baselineIndex, :], axis=0)
         strokesHeight = np.max(vp)
-        if strokesHeight < 0.25 * baselineIndex:
+        print(cutIndices[i], "passed condition1")
+        h = np.sort(np.sum(segment, axis=1))[::-1][0]
+
+        if strokesHeight < h:
+            print(cutIndices[i], "passed condition2 strokes Height=", strokesHeight)
             hp = np.sum(segment[:baselineIndex, :], axis=1)
             hp = hp[hp != 0]
 
             if stats.mode(hp).mode[0] == mvf:
-
+                print(cutIndices[i], "passed condition3")
                 strokesIndices.append(i)
-    if i == length - 1:
-        break
+        elif len(strokesIndices) >= 2:
+            if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
+                if strokesHeight < 2 * h:
+                    print(cutIndices[i], "passed condition4")
+                    hp = np.sum(segment[:baselineIndex, :], axis=1)
+                    hp = hp[hp != 0]
+
+                    if stats.mode(hp).mode[0] == mvf:
+                        print(cutIndices[i], "passed condition5")
+                        strokesIndices.append(i)
+
+# check that last letter is not split
+
+lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
+if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
+    np.sum(lastSegment[0:baselineIndex, :], axis=1)
+).sum():
+
+    cutIndices.pop(1)
+
+# make seen one letter instead of 3
 
 # print(len(strokesIndices))
-# if len(strokesIndices) > 3:
+# if len(strokesIndices) > 2:
 #     for i in range(len(strokesIndices) - 2):
+#         print(i)
 #         if (
 #             strokesIndices[i + 2] - strokesIndices[i + 1] == 1
 #             and strokesIndices[i + 1] - strokesIndices[i] == 1
@@ -149,8 +162,7 @@ for i in range(length):
 #             cutIndices.pop(strokesIndices[i + 2])
 #             cutIndices.pop(strokesIndices[i + 1])
 
-#             strokesIndices.pop(i + 2)
-#             strokesIndices.pop(i + 1)
+#             i += 2
 
 
 printWord = word.copy()
@@ -164,7 +176,7 @@ wordSkeleton[:, strokes] = 0.3
 
 # viewing the images
 viewer = CollectionViewer(
-    [img, 1 - corrected, lines_segmented, words, printWord, word, wordSkeleton]
+    [img, 1 - corrected, lines_segmented, wordsRects, printWord, word, wordSkeleton]
 )
 viewer.show()
 
