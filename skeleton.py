@@ -9,8 +9,9 @@ import os
 import numpy as np
 from commonfunctions import *
 
-# from preprocessing import *
-from test import *
+from preprocessing import *
+
+# from test import *
 import cv2
 from skimage.morphology import thin, skeletonize
 from scipy import stats

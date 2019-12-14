@@ -141,6 +141,18 @@ def character_segmentation(wordSkeleton, baselineIndex):
 
     cutIndices = list(dict.fromkeys(cutIndices))
     # strokes detection
+    lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
+    if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
+        np.sum(lastSegment[0:baselineIndex, :], axis=1)
+    ).sum():
+
+        cutIndices.pop(1)
+
+    # elif (
+    #     np.sort(np.sum(lastSegment[0:baselineIndex, :], axis=0))[::-1][1] <= 1
+    #     and np.sum(lastSegment[baselineIndex + 1 :, :]) == 0
+    # ):
+    #     cutIndices.pop(1)
 
     print(baselineIndex)
     strokesIndices = []
@@ -157,7 +169,7 @@ def character_segmentation(wordSkeleton, baselineIndex):
             print(cutIndices[i], "passed condition1")
             h = np.sort(np.sum(segment, axis=1))[::-1][0]
 
-            if strokesHeight < h:
+            if strokesHeight <= h:
                 print(cutIndices[i], "passed condition2 strokes Height=", strokesHeight)
                 hp = np.sum(segment[:baselineIndex, :], axis=1)
                 hp = hp[hp != 0]
@@ -167,7 +179,7 @@ def character_segmentation(wordSkeleton, baselineIndex):
                     strokesIndices.append(i)
             elif len(strokesIndices) >= 2:
                 if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
-                    if strokesHeight < 2 * h:
+                    if strokesHeight <= 5:
                         print(cutIndices[i], "passed condition4")
                         hp = np.sum(segment[:baselineIndex, :], axis=1)
                         hp = hp[hp != 0]
@@ -180,34 +192,41 @@ def character_segmentation(wordSkeleton, baselineIndex):
     for i in range(len(strokesIndices)):
         strokes.append(cutIndices[strokesIndices[i]])
     # check that last letter is not split
-
-    lastSegment = wordSkeleton[:, cutIndices[0] : cutIndices[1]]
-    if (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() > (
-        np.sum(lastSegment[0:baselineIndex, :], axis=1)
-    ).sum():
-
-        cutIndices.pop(1)
-    # elif np.max(np.sum(lastSegment[0:baselineIndex, :], axis=0)) < 0.5 * baselineIndex and (np.sum(lastSegment[baselineIndex + 1 :, :], axis=1)).sum() < (
-    #     np.sum(lastSegment[0:baselineIndex, :], axis=1)
-    # ).sum():
-    #     cutIndices.pop(1)
+    # wordBaseLine = max(np.argmax(np.sum(wordSkeleton, axis=1)), baselineIndex)
+    # print(baselineIndex, wordBaseLine)
 
     # make seen one letter instead of 3
 
     # print(len(strokesIndices))
+    # if len(strokesIndices) > 2:
+    #     i = 0
+    #     while i <= len(strokesIndices) - 3:
+    #         print(i)
+    #         if (
+    #             strokesIndices[i + 2] - strokesIndices[i + 1] == 1
+    #             and strokesIndices[i + 1] - strokesIndices[i] == 1
+    #         ):
+    #             print("popping")
+    #             cutIndices.pop(strokesIndices[i + 2])
+    #             cutIndices.pop(strokesIndices[i + 1])
+
+    #             i += 2
+    #         i += 1
+
     if len(strokesIndices) > 2:
-        i = 0
-        while i <= len(strokesIndices) - 3:
+        i = len(strokesIndices) - 1
+        while i >= 2:
+            #
             print(i)
             if (
-                strokesIndices[i + 2] - strokesIndices[i + 1] == 1
-                and strokesIndices[i + 1] - strokesIndices[i] == 1
+                strokesIndices[i] - strokesIndices[i - 1] == 1
+                and strokesIndices[i - 1] - strokesIndices[i - 2] == 1
             ):
                 print("popping")
-                cutIndices.pop(strokesIndices[i + 2])
-                cutIndices.pop(strokesIndices[i + 1])
+                cutIndices.pop(strokesIndices[i])
+                cutIndices.pop(strokesIndices[i - 1])
 
-                i += 2
-            i += 1
+                i -= 2
+            i -= 1
 
     return strokes, cutIndices

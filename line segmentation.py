@@ -8,140 +8,104 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 from commonfunctions import *
-from preprocessing import *
+
+from test import *
+
+# from test import *
 import cv2
-from skimage.morphology import thin
+from skimage.morphology import thin, skeletonize
 from scipy import stats
 
 # reading the image
 img = io.imread("scanned\capr2.png")
+
+#
 # img = io.imread("scanned\csep1635.png")
 
 # skew correct with bounding rect
 corrected = correct_skew(img)
+# blur = cv2.GaussianBlur(corrected, (3, 3), 0)
+ret2, th2 = cv2.threshold(corrected, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+binary = th2 / 255
+corrected = 1 - (corrected / 255)
 
 # indices of lines
 lines_indices = line_segmentation(corrected)
 # image with lines
 lines_segmented = corrected.copy()
 lines_segmented[lines_indices] = 0.5
-# converting to binary image
-binary = np.round(corrected)
+
 # images into words
-separators = words_segmentation(corrected, lines_indices)
+separators = words_segmentation(binary, lines_indices)
 # drawing rectangles around words
-words = corrected.copy()
+wordsRects = binary.copy()
 for i in range(len(lines_indices) - 1):
     for j in range(len(separators[i]) - 1):
-        words = cv2.rectangle(
-            words,
+        wordsRects = cv2.rectangle(
+            wordsRects,
             (separators[i][j], lines_indices[i]),
             (separators[i][j + 1], lines_indices[i + 1]),
             0.5,
             1,
         )
 
+words = []
+for i in range(len(lines_indices) - 1):
+    # finding baseline index for the entire line
+    line = binary[lines_indices[i] : lines_indices[i + 1]]
+    line = skeletonize(line).astype(np.float)
+    projection = np.sum(line, axis=1)
+    # line = line[projection != 0]
+    baselineIndex = np.argmax(projection)
+    # getting start of line
+    topIndex = 0
+    while topIndex < len(projection):
+        if projection[topIndex] == 0:
+            topIndex += 1
+        else:
+            break
+    print("Top index=", topIndex)
+    bottomIndex = len(projection) - 1
+    # getting end of line
+    while bottomIndex > 0:
+        if projection[topIndex] == 0:
+            topIndex -= 1
+        else:
+            break
+    print("Bottom index=", bottomIndex)
+    verticalChange = []
+    for k in range(baselineIndex):
+        verticalChange.append(len(np.where(line[k, :-1] != line[k, 1:])[0]))
+    verticalChange = np.asarray(verticalChange)
+    maxChangeIndex = np.argmax(verticalChange)
 
-# separating words using indices
-first = binary[
-    # lines_indices[2] : lines_indices[3],separators[2][4] : separators[2][5]
-    # lines_indices[7] : lines_indices[8],separators[7][2] : separators[7][3]
-    lines_indices[0] : lines_indices[1],
-    separators[0][1] : separators[0][2],
-    # lines_indices[5] : lines_indices[6],separators[5][7] : separators[5][8]
-    # lines_indices[1] : lines_indices[2],separators[1][9] : separators[1][10],
-    # lines_indices[1] : lines_indices[2],separators[1][12] : separators[1][13],
-    # lines_indices[3] : lines_indices[4],separators[3][6] : separators[3][7],
-    # lines_indices[1] : lines_indices[2],separators[1][8] : separators[1][9],
-    # lines_indices[4] : lines_indices[5], separators[4][9] : separators[4][10],
-    # lines_indices[0] : lines_indices[1],separators[0][8] : separators[0][9],
-    # lines_indices[0] : lines_indices[1],separators[0][0] : separators[0][1],
-    # lines_indices[1] : lines_indices[2],separators[1][4] : separators[1][5],
-    # lines_indices[2] : lines_indices[3],separators[2][9] : separators[2][10],
-]
-
-# character segmentation for a word
-kernel = np.ones((2, 2), np.uint8)
-closed = cv2.morphologyEx(first, cv2.MORPH_CLOSE, kernel)
-
-# finding baseline index
-projection = np.sum(first, axis=1)
-baselineIndex = np.argmax(projection)
-
-# finding maximum transition index
-verticalChange = []
-for i in range(baselineIndex):
-    # print(np.where(first[i, :-1] != first[i, 1:])[0])
-    verticalChange.append(len(np.where(first[i, :-1] != first[i, 1:])[0]))
-verticalChange = np.asarray(verticalChange)
-maxChangeIndex = max(np.argmax(verticalChange), baselineIndex - 3)
-print(baselineIndex, maxChangeIndex)
-
-# getting separation region indices
-
-separationIndices = np.where(closed[maxChangeIndex, :-1] != closed[maxChangeIndex, 1:])[
-    0
-]
-separationIndices = separationIndices.reshape(-1, 2)
-# getting cut indices
-
-vp = np.sum(closed, axis=0)
-mvf = max(stats.mode(vp).mode[0], 2)
-print(mvf)
-
-cutIndices = []
-for i in range(separationIndices.shape[0] - 1):
-    midRegion = separationIndices[i, 1] + int(
-        (separationIndices[i + 1, 0] - separationIndices[i, 1]) / 2
-    )
-    while vp[midRegion] > mvf:
-        midRegion += 1
-    if len(cutIndices) == 0:
-        cutIndices.append(midRegion)
-    
-    elif midRegion - cutIndices[-1] != 1:
-        cutIndices.append(midRegion)
-
-# strokes detection
-cutIndices.insert(0, 0)
-cutIndices.append(closed.shape[1] - 1)
-cutIndices = list(dict.fromkeys(cutIndices))
-closedBaselineIndex = np.argmax(np.sum(closed, axis=1))
-# closedBaselineIndex = 23
-print(closedBaselineIndex)
-# print(cutIndices)
-strokesIndices = []
-for i in range(len(cutIndices) - 1):
-    segment = closed[:, cutIndices[i] : cutIndices[i + 1]]
-    sumTopProjection = (np.sum(segment[0:closedBaselineIndex, :], axis=1)).sum()
-    sumBottomProjection = (np.sum(segment[closedBaselineIndex + 1 :, :], axis=1)).sum()
-    # print(segment)
-    # print(sumTopProjection, sumBottomProjection)
-    if sumTopProjection > sumBottomProjection:
-        vp = np.sum(segment[:closedBaselineIndex, :], axis=0)
-        # print(vp)
-        strokesHeight = np.max(vp)
-        # print(strokesHeight)
-        if strokesHeight < 0.25 * closedBaselineIndex:
-            hp = np.sum(segment[:closedBaselineIndex, :], axis=1)
-            hp = hp[hp != 0]
-
-            # print(segment[:closedBaselineIndex, :])
-            print(cutIndices[i], "mode", stats.mode(hp).mode[0])
-            if stats.mode(hp).mode[0] == mvf:
-                print(stats.mode(vp).mode[0], mvf)
-                strokesIndices.append(cutIndices[i])
+    for j in range(len(separators[i]) - 1, 0, -1):
+        # separating words using indices
+        wordSkeleton = line[
+            :, separators[i][j - 1] : separators[i][j],
+        ]
+        # character segmentation for a word
+        # wordSkeleton = skeletonize(word).astype(np.float)
+        strokes, cutIndices = character_segmentation(
+            wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
+        )
+        words.append([wordSkeleton, cutIndices])
+        # wordSkeleton[:, strokes] = 0.3
+        wordSkeleton[:, cutIndices] = 0.5
+        view = ImageViewer(wordSkeleton)
+        view.show()
 
 
-word = first.copy()
-first[:, cutIndices] = 0.5
-closed[:, cutIndices] = 0.5
-closed[:, strokesIndices] = 0.3
-print(strokesIndices)
+# printWord = word.copy()
+# word[:, cutIndices] = 0.5
+# wordSkeleton[:, cutIndices] = 0.5
+# strokes = []
+# for i in range(len(strokesIndices)):
+#     strokes.append(cutIndices[strokesIndices[i]])
+# wordSkeleton[:, strokes] = 0.3
+
 
 # viewing the images
-viewer = CollectionViewer(
-    [img, 1 - corrected, lines_segmented, words, word, first, closed]
-)
+viewer = CollectionViewer([img, 1 - corrected, lines_segmented, wordsRects])
 viewer.show()
 
