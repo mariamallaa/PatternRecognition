@@ -163,43 +163,57 @@ def character_segmentation(
     while i < length:
         if i == length:
             break
-        region = wordSkeleton[:, regionsAndCuts[i][0] + 1 : regionsAndCuts[i][1]]
+        region = wordSkeleton[:, regionsAndCuts[i][0] : regionsAndCuts[i][1]]
 
         # if i == 0:
         #     viewer = ImageViewer(region)
         #     viewer.show()
-        hpRegion = np.sum(region, axis=1)
+
         # case ii in paper
-        if hpRegion[baselineIndex] == 0 and i == 0 and lastflag == 1:
-            print("no baseline", i)
-            if np.sum(region[baselineIndex + 1 :, :]) > np.sum(
-                region[0:baselineIndex, :]
-            ):
-                print("below more than above")
+        if (
+            np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :])
+            and i == 0
+            and lastflag == 1
+        ):
+            print("below more than above")
+            region = region[:, 1:]
+            hpRegion = np.sum(region, axis=1)
+            if hpRegion[baselineIndex] == 0:
+                print("no baseline", i)
                 regionsAndCuts.pop(i)
                 i -= 1
                 length -= 1
         # case iii in paper
         # epic fail
-        # elif (
-        #     i == 0
-        #     and lastflag == 1
-        #     and np.sum(wordSkeleton[:baselineIndex, :])
-        #     > np.sum(wordSkeleton[baselineIndex + 1, :])
-        # ):
-        #     # getting top left index wared gedan yekon ghalat
-        #     topleft = baselineIndex
-        #     for m in range(regionsAndCuts[i][2]):
-        #         for n in range(baselineIndex):
-        #             if wordSkeleton[n, m] != 0:
-        #                 topleft = n
-        #                 break
-        #     print("check case 3: topleft=", topleft)
-        #     if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-        #         print("case 3 successful")
-        #         regionsAndCuts.pop(i)
-        #         i -= 1
-        #         length -= 1
+        elif (
+            i == 0
+            and lastflag == 1
+            and np.sum(wordSkeleton[:baselineIndex, :])
+            > np.sum(wordSkeleton[baselineIndex + 1, :])
+        ):
+            # getting top left index wared gedan yekon ghalat
+            #region = wordSkeleton[:, regionsAndCuts[i][0] - 3 : regionsAndCuts[i][1]]
+            
+            breakflag=0
+            topleft = baselineIndex
+            for m in range(region.shape[1]):
+                for n in range(baselineIndex):
+                    print("column", regionsAndCuts[i][0] + m, "row", n)
+                    if region[n, m] != 0:
+                        topleft = n
+                        breakflag=1
+                        break
+                if breakflag==1:
+                    break
+
+            print(
+                "check case 3: topleft=", topleft, "start index=", regionsAndCuts[i][0]
+            )
+            if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
+                print("case 3 successful")
+                regionsAndCuts.pop(i)
+                i -= 1
+                length -= 1
 
         if i <= 0:
             lastflag = 0
@@ -220,7 +234,7 @@ def character_segmentation(
     while z < length:
         if z == length:
             break
-        if np.sum(wordSkeleton[:, cutIndices[z]+1 : cutIndices[z + 1]]) < 4:
+        if np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]]) < 4:
             print("smaller then 4")
             cutIndices.pop(z)
             z -= 1
@@ -230,7 +244,18 @@ def character_segmentation(
             cutIndices.pop(z)
             z -= 1
             length -= 1
-        elif np.sum(wordSkeleton[:, cutIndices[z]+1 : cutIndices[z + 1]]) < 7 and len(np.sum(wordSkeleton[:, cutIndices[z]+1 : cutIndices[z + 1]],axis=0)[np.sum(wordSkeleton[:, cutIndices[z]+1 : cutIndices[z + 1]],axis=0)!=0]) ==1:
+        elif (
+            np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]]) < 7
+            and len(
+                np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]], axis=0)[
+                    np.sum(
+                        wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]], axis=0
+                    )
+                    != 0
+                ]
+            )
+            == 1
+        ):
             print("short single line")
             cutIndices.pop(z)
             z -= 1

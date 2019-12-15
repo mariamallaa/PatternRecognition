@@ -9,7 +9,7 @@ import os
 import numpy as np
 from commonfunctions import *
 
-from test import *
+from mix import *
 
 # from test import *
 import cv2
