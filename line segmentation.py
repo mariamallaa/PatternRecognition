@@ -53,7 +53,7 @@ words = []
 for i in range(len(lines_indices) - 1):
     # finding baseline index for the entire line
     line = binary[lines_indices[i] : lines_indices[i + 1]]
-    line = skeletonize(line).astype(np.float)
+    # line = skeletonize(line).astype(np.float)
     projection = np.sum(line, axis=1)
     # line = line[projection != 0]
     baselineIndex = np.argmax(projection)
@@ -84,13 +84,14 @@ for i in range(len(lines_indices) - 1):
         wordSkeleton = line[
             :, separators[i][j - 1] : separators[i][j],
         ]
+        wordSkeleton = skeletonize(wordSkeleton).astype(np.float)
         # character segmentation for a word
         # wordSkeleton = skeletonize(word).astype(np.float)
         strokes, cutIndices = character_segmentation(
             wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
         )
         words.append([wordSkeleton, cutIndices])
-        # wordSkeleton[:, strokes] = 0.3
+        wordSkeleton[:, strokes] = 0.3
         wordSkeleton[:, cutIndices] = 0.5
         view = ImageViewer(wordSkeleton)
         view.show()

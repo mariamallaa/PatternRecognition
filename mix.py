@@ -101,7 +101,20 @@ def words_segmentation(img, lines):
 def character_segmentation(
     wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
 ):
+    print("line baseline",baselineIndex)
+    # word baseline
+    projection = np.sum(wordSkeleton, axis=1)
+    baselineIndex = max(baselineIndex, np.argmax(projection))
+    # max vertical change word
+    # verticalChange = []
+    # for k in range(baselineIndex):
+    #     verticalChange.append(
+    #         len(np.where(wordSkeleton[k, :-1] != wordSkeleton[k, 1:])[0])
+    #     )
+    # verticalChange = np.asarray(verticalChange)
+    # maxChangeIndex = max(np.argmax(verticalChange), baselineIndex - 3)
 
+    print("word baseline:", baselineIndex, "maxChange word", maxChangeIndex)
     # getting separation region indices
 
     separationIndices = np.where(
@@ -211,7 +224,6 @@ def character_segmentation(
     strokes = []
     for i in range(len(strokesIndices)):
         strokes.append(cutIndices[strokesIndices[i]])
-   
 
     if len(strokesIndices) > 2:
         i = len(strokesIndices) - 1
