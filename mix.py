@@ -99,9 +99,10 @@ def words_segmentation(img, lines):
 
 
 def character_segmentation(
-    wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
+    word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
 ):
-    print("line baseline",baselineIndex)
+    # wordSkeleton = word.copy()
+    print("line baseline", baselineIndex)
     # word baseline
     projection = np.sum(wordSkeleton, axis=1)
     baselineIndex = max(baselineIndex, np.argmax(projection))
@@ -148,42 +149,45 @@ def character_segmentation(
     cutIndices = list(dict.fromkeys(cutIndices))
 
     # checks on last letter
+    if separationIndices.shape[0] > 1 and separationIndices.shape[1] > 1:
+        # case ii in paper
+        region = wordSkeleton[:, separationIndices[0, 1] : separationIndices[1, 0]]
+        if np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :]):
+            print("below more than above")
+            region = region[:, 1:]
+            hpRegion = np.sum(region, axis=1)
+            if hpRegion[baselineIndex] == 0:
+                print("no baseline")
+                cutIndices.pop(1)
+        # case iii in paper
 
-    # case ii in paper
-    region = wordSkeleton[:, separationIndices[0, 1] : separationIndices[1, 0]]
-    if np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :]):
-        print("below more than above")
-        region = region[:, 1:]
-        hpRegion = np.sum(region, axis=1)
-        if hpRegion[baselineIndex] == 0:
-            print("no baseline")
-            cutIndices.pop(1)
-    # case iii in paper
-    # epic fail
-    elif np.sum(wordSkeleton[:baselineIndex, :]) > np.sum(
-        wordSkeleton[baselineIndex + 1, :]
-    ):
-        # getting top left index wared gedan yekon ghalat
-        # region = wordSkeleton[:, regionsAndCuts[i][0] - 3 : regionsAndCuts[i][1]]
+        elif np.sum(wordSkeleton[:baselineIndex, :]) > np.sum(
+            wordSkeleton[baselineIndex + 1, :]
+        ):
+            # getting top left index wared gedan yekon ghalat
+            # region = wordSkeleton[:, regionsAndCuts[i][0] - 3 : regionsAndCuts[i][1]]
 
-        breakflag = 0
-        topleft = baselineIndex
-        for m in range(region.shape[1]):
-            for n in range(baselineIndex):
-                print("column", separationIndices[0, 1] + m, "row", n)
-                if region[n, m] != 0:
-                    topleft = n
-                    breakflag = 1
+            breakflag = 0
+            topleft = baselineIndex
+            for m in range(region.shape[1]):
+                for n in range(baselineIndex):
+                    print("column", separationIndices[0, 1] + m, "row", n)
+                    if region[n, m] != 0:
+                        topleft = n
+                        breakflag = 1
+                        break
+                if breakflag == 1:
                     break
-            if breakflag == 1:
-                break
 
-        print(
-            "check case 3: topleft=", topleft, "start index=", separationIndices[0, 1]
-        )
-        if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-            print("case 3 successful")
-            cutIndices.pop(1)
+            print(
+                "check case 3: topleft=",
+                topleft,
+                "start index=",
+                separationIndices[0, 1],
+            )
+            if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
+                print("case 3 successful")
+                cutIndices.pop(1)
 
     # strokes detection
 
@@ -234,11 +238,107 @@ def character_segmentation(
                 strokesIndices[i] - strokesIndices[i - 1] == 1
                 and strokesIndices[i - 1] - strokesIndices[i - 2] == 1
             ):
+                # if (
+                #     cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i]] : cutIndices[
+                #                 strokesIndices[i] + 1
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     == 2
+                #     and cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i - 1]] : cutIndices[
+                #                 strokesIndices[i]
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     == 2
+                #     and cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i - 2]] : cutIndices[
+                #                 strokesIndices[i - 1]
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     == 2
+                # ):
+
+                #     # print("connected components:", output[0])
+                #     print("popping")
+
+                #     cutIndices.pop(strokesIndices[i])
+                #     cutIndices.pop(strokesIndices[i - 1])
+
+                #     i -= 2
+                # elif (
+                #     cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i]] : cutIndices[
+                #                 strokesIndices[i] + 1
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     + cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i - 1]] : cutIndices[
+                #                 strokesIndices[i]
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     + cv2.connectedComponentsWithStats(
+                #         word[
+                #             :,
+                #             cutIndices[strokesIndices[i - 2]] : cutIndices[
+                #                 strokesIndices[i - 1]
+                #             ],
+                #         ].astype("uint8"),
+                #         8,
+                #     )[0]
+                #     == 8
+                #     ):
+
+                #     print("sheen successful")
+                #     print("popping")
+
+                #     cutIndices.pop(strokesIndices[i])
+                #     cutIndices.pop(strokesIndices[i - 1])
+
+                #     i -= 2
+
                 print("popping")
+
                 cutIndices.pop(strokesIndices[i])
                 cutIndices.pop(strokesIndices[i - 1])
 
                 i -= 2
+            elif (
+                cv2.connectedComponentsWithStats(
+                    word[
+                        :,
+                        cutIndices[strokesIndices[i]] : cutIndices[
+                            strokesIndices[i] + 1
+                        ],
+                    ].astype("uint8"),
+                    8,
+                )[0]
+                == 3
+            ):
+                print("dad sad")
+                cutIndices.pop(strokesIndices[i] + 1)
+                i -= 1
+
             i -= 1
 
     return strokes, cutIndices

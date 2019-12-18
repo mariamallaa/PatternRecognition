@@ -17,10 +17,10 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 
 # reading the image
-img = io.imread("scanned\capr2.png")
+img = io.imread("scanned\capr6.png")
 
 #
-# img = io.imread("scanned\csep1635.png")
+# img = io.imread("scanned\csep1638.png")
 
 # skew correct with bounding rect
 corrected = correct_skew(img)
@@ -35,6 +35,7 @@ lines_indices = line_segmentation(corrected)
 lines_segmented = corrected.copy()
 lines_segmented[lines_indices] = 0.5
 
+
 # images into words
 separators = words_segmentation(binary, lines_indices)
 # drawing rectangles around words
@@ -48,6 +49,9 @@ for i in range(len(lines_indices) - 1):
             0.5,
             1,
         )
+
+# view = ImageViewer(wordsRects)
+# view.show()
 
 words = []
 for i in range(len(lines_indices) - 1):
@@ -81,14 +85,14 @@ for i in range(len(lines_indices) - 1):
 
     for j in range(len(separators[i]) - 1, 0, -1):
         # separating words using indices
-        wordSkeleton = line[
+        word = line[
             :, separators[i][j - 1] : separators[i][j],
         ]
-        wordSkeleton = skeletonize(wordSkeleton).astype(np.float)
+        wordSkeleton = skeletonize(word).astype(np.float)
         # character segmentation for a word
         # wordSkeleton = skeletonize(word).astype(np.float)
         strokes, cutIndices = character_segmentation(
-            wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
+            word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
         )
         words.append([wordSkeleton, cutIndices])
         wordSkeleton[:, strokes] = 0.3
