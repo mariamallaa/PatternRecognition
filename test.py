@@ -79,13 +79,6 @@ def segments_indices(projection):
 
 def words_segmentation(img, lines):
 
-    # line=img[lines[0]:lines[1],:]
-    # projection=projection=np.sum(line,axis=0)
-    # print(lines[1]-lines[0])
-    # subword=np.array([1,1,1])
-    # projection=np.convolve(projection,subword,'same')
-    # indices=segments_indices(projection)
-    # return indices
     words_rects = []
     for i in range(len(lines) - 1):
         line = img[lines[i] : lines[i + 1], :]
@@ -101,21 +94,11 @@ def words_segmentation(img, lines):
 def character_segmentation(
     word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
 ):
-    # wordSkeleton = word.copy()
-    print("line baseline", baselineIndex)
+
     # word baseline
     projection = np.sum(wordSkeleton, axis=1)
     baselineIndex = max(baselineIndex, np.argmax(projection))
-    # max vertical change word
-    # verticalChange = []
-    # for k in range(baselineIndex):
-    #     verticalChange.append(
-    #         len(np.where(wordSkeleton[k, :-1] != wordSkeleton[k, 1:])[0])
-    #     )
-    # verticalChange = np.asarray(verticalChange)
-    # maxChangeIndex = max(np.argmax(verticalChange), baselineIndex - 3)
 
-    print("word baseline:", baselineIndex, "maxChange word", maxChangeIndex)
     # getting separation region indices
 
     separationIndices = np.where(
@@ -153,12 +136,12 @@ def character_segmentation(
         # case ii in paper
         region = wordSkeleton[:, separationIndices[0, 1] : separationIndices[1, 0]]
         if np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :]):
-            print("below more than above")
+
             region = region[:, 1:]
             hpRegion = np.sum(region, axis=1)
             if hpRegion[baselineIndex] == 0:
                 if vp[cutIndices[1]] != 0:
-                    print("case 2 successful")
+
                     cutIndices.pop(1)
         # case iii in paper
 
@@ -169,38 +152,31 @@ def character_segmentation(
             hpRegion = np.sum(region, axis=1)
             if hpRegion[baselineIndex] < hpRegion[baselineIndex - 1]:
                 stop = baselineIndex - 1
-            
-            start=0
-            vpRegion=np.sum(region,axis=0)
+
+            start = 0
+            vpRegion = np.sum(region, axis=0)
             if vpRegion[0] > hpRegion[1]:
-                start=1
+                start = 1
 
             breakflag = 0
             topleft = 0
             for m in range(start, region.shape[1], 1):
                 for n in range(stop):
-                    print("column", separationIndices[0, 1] + m, "row", n)
+
                     if region[n, m] != 0:
                         topleft = n
                         breakflag = 1
                         break
                 if breakflag == 1:
                     break
-            print("start",start+separationIndices[0, 1],"stop",stop)
-            print(
-                "check case 3: topleft=",
-                topleft,
-                "start index=",
-                separationIndices[0, 1],
-            )
+
             if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
                 if vp[cutIndices[1]] != 0:
-                    print("case 3 successful")
+
                     cutIndices.pop(1)
 
     # strokes detection
 
-    print(baselineIndex)
     strokesIndices = []
     length = len(cutIndices) - 1
 
@@ -212,26 +188,25 @@ def character_segmentation(
         if sumTopProjection > sumBottomProjection and vp[cutIndices[i]] != 0:
             vpSegment = np.sum(segment[:baselineIndex, :], axis=0)
             strokesHeight = np.max(vpSegment)
-            print(cutIndices[i], "passed condition1")
+
             h = np.sort(np.sum(segment, axis=1))[::-1][0]
 
             if strokesHeight <= h:
-                print(cutIndices[i], "passed condition2 strokes Height=", strokesHeight)
                 hp = np.sum(segment[:baselineIndex, :], axis=1)
                 hp = hp[hp != 0]
 
                 if stats.mode(hp).mode[0] == mvf:
-                    print(cutIndices[i], "passed condition3")
+
                     strokesIndices.append(i)
             elif len(strokesIndices) >= 2:
                 if i - strokesIndices[-1] == 1 and i - strokesIndices[-2] == 2:
                     if strokesHeight <= 5:
-                        print(cutIndices[i], "passed condition4")
+
                         hp = np.sum(segment[:baselineIndex, :], axis=1)
                         hp = hp[hp != 0]
 
                         if stats.mode(hp).mode[0] == mvf:
-                            print(cutIndices[i], "passed condition5")
+
                             strokesIndices.append(i)
 
     strokes = []
@@ -241,8 +216,7 @@ def character_segmentation(
     if len(strokesIndices) > 2:
         i = len(strokesIndices) - 1
         while i >= 2:
-            #
-            print(i)
+
             if (
                 strokesIndices[i] - strokesIndices[i - 1] == 1
                 and strokesIndices[i - 1] - strokesIndices[i - 2] == 1
@@ -279,9 +253,6 @@ def character_segmentation(
                     )[0]
                     == 2
                 ):
-
-                    # print("connected components:", output[0])
-                    print("popping")
 
                     cutIndices.pop(strokesIndices[i])
                     cutIndices.pop(strokesIndices[i - 1])
@@ -321,9 +292,6 @@ def character_segmentation(
                     == 8
                 ):
 
-                    print("sheen successful")
-                    print("popping")
-
                     cutIndices.pop(strokesIndices[i])
                     cutIndices.pop(strokesIndices[i - 1])
 
@@ -334,45 +302,5 @@ def character_segmentation(
                     i -= 2
 
             i -= 1
-
-    # i = len(strokesIndices) - 1
-    # while i >= 0:
-    #     if (
-    #         len(strokesIndices) > 0
-    #         and len(cutIndices) > 2
-    #         and len(cutIndices) > len(strokesIndices)
-    #         and len(cutIndices)>strokesIndices[i]+1
-    #     ):
-    #         if (
-    #             cv2.connectedComponentsWithStats(
-    #                 word[
-    #                     :,
-    #                     cutIndices[strokesIndices[i]] : cutIndices[
-    #                         strokesIndices[i] + 1
-    #                     ],
-    #                 ].astype("uint8"),
-    #                 8,
-    #             )[0]
-    #             == 2
-    #         ):
-    #             if vp[cutIndices[strokesIndices[i] +1]] != 0:
-    #                 cutIndices.pop(strokesIndices[i]+ 1)
-    #                 print("sad or dad popped")
-    #         i -= 1
-
-    #     else:
-    #         break
-
-    # if len(strokesIndices) > 1 and len(cutIndices) > 2:
-    #     i = 0
-    #     while i < len(strokesIndices) - 1:
-    #         if (
-    #             strokesIndices[i + 1] - strokesIndices[i] != 1
-    #             and strokesIndices[i] + 1 < len(cutIndices) - 1
-    #             and vp[cutIndices[strokesIndices[i] + 1]] != 0
-    #         ):
-    #             print("sad or dad")
-    #             cutIndices.pop(strokesIndices[i] + 1)
-    #         i += 1
 
     return strokes, cutIndices
