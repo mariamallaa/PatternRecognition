@@ -68,8 +68,9 @@ def labeling(words):
     print(len(ArbSynFinal))
     print(len(classes))
     mycurrentindex=0
-    namefile="capr2"
-    f= open("Association\\"+namefile+".txt","w+")
+
+    namefile="training"
+    f= open("Association\\"+namefile+".txt","a+")
     currentword=1
     for word in words:
         charseg=cutimg(word)
