@@ -73,7 +73,7 @@ def segmentation(path):
                 topIndex += 1
             else:
                 break
-        print("Top index=", topIndex)
+        
         bottomIndex = len(projection) - 1
         # getting end of line
         while bottomIndex > 0:
@@ -81,7 +81,7 @@ def segmentation(path):
                 topIndex -= 1
             else:
                 break
-        print("Bottom index=", bottomIndex)
+        
         verticalChange = []
         for k in range(baselineIndex):
             verticalChange.append(len(np.where(line[k, :-1] != line[k, 1:])[0]))
