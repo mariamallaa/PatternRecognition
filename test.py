@@ -3,7 +3,7 @@ from scipy.ndimage import interpolation as inter
 from scipy import stats
 import cv2
 
-
+####
 def correct_skew(img):
     thresh = img.copy()
     thresh = 1 - (thresh / 255)
