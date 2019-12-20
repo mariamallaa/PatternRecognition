@@ -64,10 +64,9 @@ def labeling(currentImg, words, path):
     for bca in contents:  # Converting from unicode to arabic done
         encoded = bca.encode("utf-8")  # this works fine
         encoded = u"".join([c for c in bca])
-        # print(encoded)
+
         ArbSynFinal.append(encoded)
-    print("------Arb Syn Final----------")
-    print(ArbSynFinal)
+
     classes = []
     lamalf = 0
     for fileletterindex in range(len(ArbSynFinal)):
@@ -79,10 +78,11 @@ def labeling(currentImg, words, path):
             continue
 
         if ArbSynFinal[fileletterindex] == "ل":
-            if ArbSynFinal[fileletterindex + 1] == "ا":
-                classes.append(28)
-                lamalf = 1
-                continue
+            if fileletterindex + 1 < len(ArbSynFinal):
+                if ArbSynFinal[fileletterindex + 1] == "ا":
+                    classes.append(28)
+                    lamalf = 1
+                    continue
 
         for i in range(len(characterlist)):
             if ArbSynFinal[fileletterindex] == characterlist[i]:
@@ -112,17 +112,22 @@ def labeling(currentImg, words, path):
 
         name = "segmentimage"
         index = 0
-        print(len(charseg))
+
         if (len(charseg)) == length:
 
             currentindex = mycurrentindex - length
 
             for char in charseg:
                 name = (
-                    "img" + currentImg + name + str(currentword) + str(index) + ".png"
+                    "dataset\\img"
+                    + str(currentImg)
+                    + name
+                    + str(currentword)
+                    + str(index)
+                    + ".png"
                 )
 
-                char = resize(char, (50, 50))
+                char = resize(char, (28, 28))
                 # ret, bw_img = cv2.threshold(char,127,255,cv2.THRESH_BINARY)
                 pt.image.imsave(name, char)
 

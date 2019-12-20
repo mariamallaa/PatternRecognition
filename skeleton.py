@@ -18,6 +18,31 @@ from scipy import stats
 # img = io.imread("scanned\capr2.png")
 
 #
+def segmentation_accuracy(path, words):
+    text = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            for word in line.split():
+                length = len(word)
+                for i in range(len(word) - 1):
+                    if word[i] == "ل" and word[i + 1] == "ا":
+
+                        length -= 1
+                text.append(length)
+
+    if len(text) == len(words):
+
+        correct = 0
+        for i in range(len(words)):
+            if len(words[i]) - 1 == text[i]:
+                correct += 1
+        print("character segmentation accuracy=", (correct / len(words)) * 100)
+        return True
+    else:
+        print("word segmentation failed", len(text), len(words))
+        return False
+
+
 def segmentation(path):
     img = io.imread(path)
 
@@ -78,3 +103,33 @@ def segmentation(path):
 
     labeling(words)
 
+
+text_path = "C:\\Users\\Maram\\Downloads\\text"
+
+text_files = []
+# r=root, d=directories, f = files
+for r, d, f in os.walk(text_path):
+    for file in f:
+        if ".txt" in file:
+            text_files.append(os.path.join(r, file))
+
+
+scanned_path = "C:\\Users\\Maram\\Downloads\\scanned"
+scanned_files = []
+# r=root, d=directories, f = files
+for r, d, f in os.walk(scanned_path):
+    for file in f:
+        if ".png" in file:
+            scanned_files.append(os.path.join(r, file))
+
+for i in range(len(scanned_files)):
+    print("img:", i)
+    words = segmentation(scanned_files[i])
+    cuts = np.asarray(words)
+    cuts = cuts[:, 1]
+    if segmentation_accuracy(text_files[i], cuts):
+        labeling(i, words, text_files[i])
+    else:
+        print("failed at image: ", scanned_files[i])
+        f = open("failed.txt", "a+")
+        f.write(scanned_files[i] + "\n")
