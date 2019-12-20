@@ -55,6 +55,6 @@ print("Recall:",metrics.recall_score(y_test, y_pred))
 '''
 
 filename = "finalized_model.sav"
-f= open("E:\\pattern\\"+filename,"w+")
+f= open(filename,"w+")
 pickle.dump(svclassifier, open(filename, 'wb'))
 print("finish saving")

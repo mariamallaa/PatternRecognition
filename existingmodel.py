@@ -42,7 +42,7 @@ with open(filepath) as fp:
                 array.append(int(char))
         X.append(array)
         line = fp.readline()
-
+print(X[0])
 sc = StandardScaler()
 X = sc.fit_transform(X)
 ohe = OneHotEncoder()
@@ -60,7 +60,7 @@ print("Loaded model from disk")
 # evaluate loaded model on test data
 loaded_model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-
+print(X[0])
 y_pred = loaded_model.predict(X)
 #Converting predictions to label
 pred = list()
@@ -70,6 +70,7 @@ for i in range(len(y_pred)):
 test = list()
 for i in range(len(y)):
     test.append(np.argmax(y[i]))
-
+print(pred)
+print(test)
 a = accuracy_score(pred,test)
 print('Accuracy is:', a*100)
