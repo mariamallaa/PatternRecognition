@@ -48,11 +48,11 @@ y_pred = svclassifier.predict(X_test)
 '''
 print(confusion_matrix(y_test, y_pred))
 print(classification_report(y_test, y_pred))
-'''
+
 print("Precision:",metrics.precision_score(y_test, y_pred))
 print("Accuracy:",metrics.accuracy_score(y_test, y_pred)*100)
 print("Recall:",metrics.recall_score(y_test, y_pred))
-
+'''
 
 filename = "finalized_model.sav"
 f= open("E:\\pattern\\"+filename,"w+")
