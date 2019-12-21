@@ -145,6 +145,70 @@ def chain_code_test(h):
 
     return(chain)
 
+
+def chain_code_t(h):
+    output=[]
+    output = cv2.connectedComponentsWithStats(h.astype('uint8'), 4)
+    stats=output[2]
+    m=np.array(output[0]-1)
+    m=stats[1::,4]
+    ind = np.argmax(m)
+    start=stats[ind+1][1]
+
+    chain=[]
+    currenti=0
+    currentj=0
+    dir=[[0,1],[-1,0],[0,-1],[1,0]]
+    starti=0
+    startj=0
+    i=0
+    j=0
+    p=0
+    g=0
+    for j in range(h.shape[1]):
+            if(h[start][j]):
+                currenti=start
+                currentj=j
+                starti=start
+                startj=j
+                break   
+    print(currenti,currentj)        
+    i=3
+    chain.append(i)
+    indexi=0
+    indexj=0
+    #print(currenti,currentj)
+    
+    while(1):
+        if(i==4):
+            i=0
+        print(chain)
+        print(int(currenti+dir[i][0]),int(currentj+dir[i][1]))
+        if(h[int(currenti+dir[i][0])][int(currentj+dir[i][1])]):
+            chain.append(i)
+            currenti=currenti+dir[i][0]
+            currentj=currentj+dir[i][1]
+            i=(i+3)%4
+            g+=1
+            if(g==80):
+                break
+            if(currenti==starti and currentj==startj):
+                break
+            if(currentj==0):
+                i=3
+            if(currentj==h.shape[1]-1):
+                i=1
+            continue
+
+        elif(h[(currenti+dir[i][0])][(currentj+dir[i][1])]==0):
+            i+=1
+            continue
+    if(g<80):
+        for i in range(80-g):
+            chain.append(-1)
+    return(chain)
+
+
 def Distribution(binary):
     output=[]
     main=[]
@@ -154,16 +218,21 @@ def Distribution(binary):
     m=stats[1::,4]
     indmax = np.argmax(m)
     A=stats[indmax+1][4]
-    main.append(np.round(np.sum(binary[0:14,0:14])/A,2))
-    main.append(np.round(np.sum(binary[0:14,14:28]/A),2))
-    main.append(np.round(np.sum(binary[14:28,0:14]/A),2))
-    main.append(np.round(np.sum(binary[14:28,14:28]/A),2))
+    h=binary.shape[0]
+    w=binary.shape[1]
+    h2=math.floor(h/2)
+    w2=math.ceil(w/2)
+    main.append(np.round(np.sum(binary[0:h2,0:w2])/A,2))
+    main.append(np.round(np.sum(binary[0:h2,w2:w]/A),2))
+    main.append(np.round(np.sum(binary[h2:h,0:w2]/A),2))
+    main.append(np.round(np.sum(binary[h2:h,w2:w]/A),2))
     return(main)
 
 def Combine(binary):
     features=[]
-    features.append(chain_code_test(binary))
+    features.append(chain_code_t(binary))
     features.append(Get_secondary(binary))
     features.append(Find_holes(binary))
+    features.append(Get_main(binary))
     features.append(Distribution(binary))
     return(features)
