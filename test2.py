@@ -98,6 +98,28 @@ def words_segmentation(img, lines):
     return words_rects
 
 
+def Find_holes(binary):
+    holes = []
+    contours, hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+    for i in range(len(hierarchy[0])):
+        if hierarchy[0][i][3] >= 0:
+            holes = contours[i]
+    if len(holes) == 0:
+        num_holes = 0
+    else:
+        mask = np.zeros(binary.shape, np.uint8)
+        cv2.drawContours(mask, holes, -1, 1, cv2.FILLED)
+        num_holes = Get_connected_comp(mask)
+    return num_holes
+
+
+def Get_connected_comp(resized):
+    output = cv2.connectedComponentsWithStats(resized.astype("uint8"), 4)
+    number_of_holes = output[0] - 1
+    return number_of_holes
+
+
 def character_segmentation(
     word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
 ):
@@ -169,11 +191,11 @@ def character_segmentation(
             hpRegion = np.sum(region, axis=1)
             if hpRegion[baselineIndex] < hpRegion[baselineIndex - 1]:
                 stop = baselineIndex - 1
-            
-            start=0
-            vpRegion=np.sum(region,axis=0)
+
+            start = 0
+            vpRegion = np.sum(region, axis=0)
             if vpRegion[0] > hpRegion[1]:
-                start=1
+                start = 1
 
             breakflag = 0
             topleft = 0
@@ -186,7 +208,7 @@ def character_segmentation(
                         break
                 if breakflag == 1:
                     break
-            print("start",start+separationIndices[0, 1],"stop",stop)
+            print("start", start + separationIndices[0, 1], "stop", stop)
             print(
                 "check case 3: topleft=",
                 topleft,
@@ -341,38 +363,62 @@ def character_segmentation(
     #         len(strokesIndices) > 0
     #         and len(cutIndices) > 2
     #         and len(cutIndices) > len(strokesIndices)
-    #         and len(cutIndices)>strokesIndices[i]+1
+    #         and len(cutIndices) > strokesIndices[i] + 1
     #     ):
     #         if (
-    #             cv2.connectedComponentsWithStats(
+    #             Find_holes(
     #                 word[
     #                     :,
     #                     cutIndices[strokesIndices[i]] : cutIndices[
     #                         strokesIndices[i] + 1
     #                     ],
-    #                 ].astype("uint8"),
-    #                 8,
-    #             )[0]
-    #             == 2
+    #                 ].astype("uint8")
+    #             )
+    #             == 1
     #         ):
-    #             if vp[cutIndices[strokesIndices[i] +1]] != 0:
-    #                 cutIndices.pop(strokesIndices[i]+ 1)
-    #                 print("sad or dad popped")
-    #         i -= 1
+    #             cutIndices.pop(strokesIndices[i])
+    #             print("popped dad")
 
+    #         i -= 1
     #     else:
     #         break
 
-    # if len(strokesIndices) > 1 and len(cutIndices) > 2:
-    #     i = 0
-    #     while i < len(strokesIndices) - 1:
-    #         if (
-    #             strokesIndices[i + 1] - strokesIndices[i] != 1
-    #             and strokesIndices[i] + 1 < len(cutIndices) - 1
-    #             and vp[cutIndices[strokesIndices[i] + 1]] != 0
-    #         ):
-    #             print("sad or dad")
-    #             cutIndices.pop(strokesIndices[i] + 1)
-    #         i += 1
+    i = len(strokesIndices) - 1
+    while i >= 0:
+        if (
+            len(strokesIndices) > 0
+            and len(cutIndices) > 2
+            and len(cutIndices) > len(strokesIndices)
+            and len(cutIndices) > strokesIndices[i] + 2
+        ):
+
+            if (
+                cv2.connectedComponentsWithStats(
+                    word[
+                        :,
+                        cutIndices[strokesIndices[i]] : cutIndices[
+                            strokesIndices[i] + 1
+                        ],
+                    ].astype("uint8"),
+                    8,
+                )[0]
+                == 2
+                and Find_holes(
+                    word[
+                        :,
+                        cutIndices[strokesIndices[i] + 1] : cutIndices[
+                            strokesIndices[i] + 2
+                        ],
+                    ].astype("uint8")
+                )
+                == 1
+            ):
+                if vp[cutIndices[strokesIndices[i] + 1]] != 0:
+                    cutIndices.pop(strokesIndices[i] + 1)
+                    print("sad or dad popped")
+            i -= 1
+
+        else:
+            break
 
     return strokes, cutIndices

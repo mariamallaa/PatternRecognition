@@ -17,10 +17,10 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 
 # reading the image
-# img = io.imread("scanned\capr2.png")
+img = io.imread("scanned\capr2.png")
 
 #
-img = io.imread("scanned\csep1638.png")
+# img = io.imread("scanned\csep1638.png")
 
 # skew correct with bounding rect
 corrected = correct_skew(img)
@@ -99,14 +99,14 @@ for i in range(len(lines_indices) - 1):
         # cut[:, strokes] = 0.3
         # wordSkeleton[:, strokes] = 0.3
         # wordSkeleton[:, cutIndices] = 0.5
-        # view = CollectionViewer([wordSkeleton, cut])
+        # view = CollectionViewer([wordSkeleton])
         # view.show()
 
 
 words = np.asarray(words)
-# segmentation_accuracy("text\capr2.txt", words[:, 1])
+segmentation_accuracy("text\capr2.txt", words[:, 1])
 
-segmentation_accuracy("text\csep1638.txt", words[:, 1])
+# segmentation_accuracy("text\csep1638.txt", words[:, 1])
 # printWord = word.copy()
 # word[:, cutIndices] = 0.5
 # wordSkeleton[:, cutIndices] = 0.5
