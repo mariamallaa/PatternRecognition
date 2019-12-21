@@ -193,9 +193,9 @@ def character_segmentation(
                 stop = baselineIndex - 1
 
             start = 0
-            vpRegion = np.sum(region, axis=0)
-            if vpRegion[0] > hpRegion[1]:
-                start = 1
+            # vpRegion = np.sum(region, axis=0)
+            # if vpRegion[0] > vpRegion[1]:
+            #     start = 1
 
             breakflag = 0
             topleft = 0
@@ -216,7 +216,11 @@ def character_segmentation(
                 separationIndices[0, 1],
             )
             if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-                if vp[cutIndices[1]] != 0:
+                if (
+                    vp[cutIndices[1]] != 0
+                    and np.sum(wordSkeleton[baselineIndex + 1 :, 0 : cutIndices[1]])
+                    == 0
+                ):
                     print("case 3 successful")
                     cutIndices.pop(1)
 
