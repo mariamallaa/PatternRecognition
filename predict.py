@@ -15,10 +15,27 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 from datetime import datetime
 from ModelPrediction import *
-from SVMLoader import *
+<<<<<<< Updated upstream
 
+=======
+from SVMLoader import *
+from Features import *
+>>>>>>> Stashed changes
 
 # change it lel directory beta3 input
+
+# load json and create model
+json_file = open('model2.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+loaded_model = model_from_json(loaded_model_json)
+# load weights into new model
+loaded_model.load_weights("model2.h5")
+
+
+    
+# evaluate loaded model on test data
+loaded_model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
 
 scanned_path = "C:\\Users\\Mariam Alaa\\Documents\\GitHub\\PatternRecognition\\scanned"
 scanned_files = []
@@ -67,7 +84,11 @@ for i in range(len(scanned_files)):
     words = segment(scanned_files[i])
     words=np.asarray(words)
     index=1
-    f = open("output\\test\\test_" + str(i + 2) + ".txt", "a+", encoding="utf-8")
+<<<<<<< Updated upstream
+    f = open("output\\test\\test_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+=======
+    f = open("output\\test\\test_model" + str(i + 2) + ".txt", "a+", encoding="utf-8")
+>>>>>>> Stashed changes
     for j in range(len(words)):
         generatedWord = ""
         word = words[j, 0]
@@ -75,21 +96,41 @@ for i in range(len(scanned_files)):
         cut_indices = words[j, 1]
         for k in range(len(cut_indices)-1,0,-1):
             letter = word[:, cut_indices[k - 1] : cut_indices[k]]
-            
+            #print(letter)
+           
             resized28 = cv2.resize(letter, (28, 28),interpolation = cv2.INTER_NEAREST)
-            #print(resized28.astype('uint8'))
-            #show_images([letter,resized28.astype('uint8')])
+
+            
             #binary=cv2.threshold(newresized, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
             
             features = np.ravel(resized28.astype('uint8'))
-            
-            
-            #letter_class = predict([features])
-            letter_class = PredictSVM([features])
-            #print(letter_class)
 
+            #features=Combine(letter.astype('uint8'))
+
+            
+<<<<<<< Updated upstream
+            letter_class = predict([features])
+=======
+    
+
+            y_pred = loaded_model.predict([[features]])
+            letter_class=[]
+            for i in range(len(y_pred)):
+                letter_class.append(np.argmax(y_pred[i]))
+            
+>>>>>>> Stashed changes
+
+
+
+
+            
+            #letter_class = predict([features],loaded_model)
+            #letter_class = PredictSVM([features])
+            #print(letter_class)
+            #print(letter_class)
+            #show_images([letter])
             generatedWord+=characterlist[letter_class[0]]
-            #print(generatedWord)
+            print(generatedWord)
         f.write(generatedWord+" ")
         print(index)
         index+=1

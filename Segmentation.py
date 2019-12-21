@@ -104,9 +104,7 @@ def words_segmentation(img, lines):
     return words_rects
 
 
-def character_segmentation(
-    word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex
-):
+def character_segmentation(word, wordSkeleton, baselineIndex, maxChangeIndex, topIndex, bottomIndex):
 
     # word baseline
     projection = np.sum(wordSkeleton, axis=1)

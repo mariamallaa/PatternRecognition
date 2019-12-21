@@ -47,9 +47,9 @@ def get_xy():
     f.close()
         
 
-#X,Y=get_xy()
+X,Y=get_xy()
 
-'''
+
 for features in X:
     for _string in features:
         file2.write(str(_string))
@@ -148,3 +148,4 @@ with open("model2.json", "w") as json_file:
 # serialize weights to HDF5
 model.save_weights("model2.h5")
 print("Saved model to disk")
+'''
