@@ -182,8 +182,7 @@ def character_segmentation(word, wordSkeleton, baselineIndex, maxChangeIndex, to
                     break
 
             if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-                if vp[cutIndices[1]] != 0:
-
+                if (vp[cutIndices[1]] != 0 and np.sum(wordSkeleton[baselineIndex + 1 :, 0 : cutIndices[1]])== 0):
                     cutIndices.pop(1)
 
     # strokes detection

@@ -39,7 +39,7 @@ for x in f:
     Feature_vec=Combine(binary,k)
     k+=1
     currentXlist.append(Feature_vec)
-    print(Feature_vec)
+    #print(Feature_vec)
     y=temp[1].split("\n",1) #maxsplit
     currentylist.append(y[0])
 

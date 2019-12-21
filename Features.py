@@ -43,11 +43,7 @@ def Find_holes(binary):
         num_holes=Get_connected_comp(mask)
     return num_holes
 
-<<<<<<< Updated upstream
-def chain_code_t(h,k):
-=======
 def chain_code_t(h):
->>>>>>> Stashed changes
     
     output=[]
 
@@ -69,11 +65,7 @@ def chain_code_t(h):
 
     m=np.array(output[0]-1)
 
-<<<<<<< Updated upstream
-    print(stats)
-=======
     #print(stats)
->>>>>>> Stashed changes
 
     m=stats[1::,4]
     
@@ -262,21 +254,6 @@ def Distribution(binary,main):
     return(main)
 
 
-<<<<<<< Updated upstream
-def Combine(binary,k):
-    
-    print(k)
-    features=chain_code_t(binary,k)
-    print("finished chaincode")
-    featuresgetsec=Get_secondary(binary,features)
-    print("finish getsec")
-    featuresgetsec.append(Find_holes(binary))
-    print("find holes")
-    featuresgetsec=Get_main(binary,featuresgetsec)
-    print("find mains")
-    featuresgetsec=Distribution(binary,featuresgetsec)
-    print("dist")
-=======
 def Combine(binary):
     
     #print(k)
@@ -290,6 +267,5 @@ def Combine(binary):
     #print("find mains")
     featuresgetsec=Distribution(binary,featuresgetsec)
     #print("dist")
->>>>>>> Stashed changes
     
     return(featuresgetsec)

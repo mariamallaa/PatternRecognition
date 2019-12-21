@@ -15,12 +15,10 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 from datetime import datetime
 from ModelPrediction import *
-<<<<<<< Updated upstream
 
-=======
 from SVMLoader import *
 from Features import *
->>>>>>> Stashed changes
+
 
 # change it lel directory beta3 input
 
@@ -84,11 +82,8 @@ for i in range(len(scanned_files)):
     words = segment(scanned_files[i])
     words=np.asarray(words)
     index=1
-<<<<<<< Updated upstream
-    f = open("output\\test\\test_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
-=======
-    f = open("output\\test\\test_model" + str(i + 2) + ".txt", "a+", encoding="utf-8")
->>>>>>> Stashed changes
+
+    f = open("output\\test\\test_enhanced" + str(i + 1) + ".txt", "a+", encoding="utf-8")
     for j in range(len(words)):
         generatedWord = ""
         word = words[j, 0]
@@ -108,17 +103,14 @@ for i in range(len(scanned_files)):
             #features=Combine(letter.astype('uint8'))
 
             
-<<<<<<< Updated upstream
-            letter_class = predict([features])
-=======
+
     
 
             y_pred = loaded_model.predict([[features]])
             letter_class=[]
             for i in range(len(y_pred)):
                 letter_class.append(np.argmax(y_pred[i]))
-            
->>>>>>> Stashed changes
+
 
 
 
@@ -130,7 +122,7 @@ for i in range(len(scanned_files)):
             #print(letter_class)
             #show_images([letter])
             generatedWord+=characterlist[letter_class[0]]
-            print(generatedWord)
+            #print(generatedWord)
         f.write(generatedWord+" ")
         print(index)
         index+=1
