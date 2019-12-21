@@ -15,6 +15,7 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 from datetime import datetime
 from ModelPrediction import *
+from SVMLoader import *
 
 
 # change it lel directory beta3 input
@@ -66,7 +67,7 @@ for i in range(len(scanned_files)):
     words = segment(scanned_files[i])
     words=np.asarray(words)
     index=1
-    f = open("output\\test\\test_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+    f = open("output\\test\\test_" + str(i + 2) + ".txt", "a+", encoding="utf-8")
     for j in range(len(words)):
         generatedWord = ""
         word = words[j, 0]
@@ -76,16 +77,19 @@ for i in range(len(scanned_files)):
             letter = word[:, cut_indices[k - 1] : cut_indices[k]]
             
             resized28 = cv2.resize(letter, (28, 28),interpolation = cv2.INTER_NEAREST)
-
-            
+            #print(resized28.astype('uint8'))
+            #show_images([letter,resized28.astype('uint8')])
             #binary=cv2.threshold(newresized, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
             
             features = np.ravel(resized28.astype('uint8'))
             
-            letter_class = predict([features])
+            
+            #letter_class = predict([features])
+            letter_class = PredictSVM([features])
+            #print(letter_class)
 
             generatedWord+=characterlist[letter_class[0]]
-            print(generatedWord)
+            #print(generatedWord)
         f.write(generatedWord+" ")
         print(index)
         index+=1
