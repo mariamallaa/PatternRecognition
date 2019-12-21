@@ -16,7 +16,7 @@ from skimage import io
 from commonfunctions import *
 import cv2
 import csv
-
+from Features import *
 
 
 
@@ -30,9 +30,11 @@ for x in f:
     mycurrentchar=io.imread("D:\\pattern dataset\\"+temp[0])
     gray = cv2.cvtColor(mycurrentchar, cv2.COLOR_BGR2GRAY)
     binary = cv2.threshold(gray, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    resized28 = cv2.resize(binary, (28,28))
+    #resized28 = cv2.resize(binary, (28,28))
     #features = np.ravel(resized28)
-    currentXlist.append(resized28)
+    Feature_vec=Combine(binary)
+
+    currentXlist.append(Feature_vec)
     y=temp[1].split("\n",1) #maxsplit
     currentylist.append(y[0])
 
@@ -40,10 +42,13 @@ currentX=np.asarray(currentXlist)
 currenty=np.asarray(currentylist)
 X_train,X_test,y_train,y_test = train_test_split(currentX,currenty,test_size = 0.4,random_state=109)
 X_testing,X_validate,y_testing,y_validate = train_test_split(X_test,y_test,test_size = 0.5,random_state=109)
+'''
 X_trainLast=np.zeros([X_train.shape[0],784])
 X_testingLast=np.zeros([X_testing.shape[0],784])
 X_validateLast=np.zeros([X_validate.shape[0],784])
 # Normalize the images.
+'''
+'''
 for i in range(len(X_train)):
     #X_train[i]= (X_train[i] / 255) - 0.5
     X_trainLast[i]= np.ravel(X_train[i])
@@ -54,12 +59,13 @@ for i in range(len(X_testing)):
 for i in range(len(X_validate)):
     #X_validate[i] = (X_validate[i] / 255) - 0.5
     X_validateLast[i]= np.ravel(X_validate[i])
+'''
 
 
 
 model = Sequential()
 print("1")
-model.add(Dense(512, input_dim=784, activation='relu'))
+model.add(Dense(512, input_dim=80, activation='relu'))
 model.add(Dense(120, activation='relu'))
 model.add(Dense(29, activation='softmax'))
 
@@ -73,15 +79,15 @@ model.compile(
 print(len(X_validate))
 
 model.fit(
-  X_trainLast,
+  X_train,
   to_categorical(y_train),
   epochs=50,
   batch_size=64,
-  validation_data=(X_validateLast, to_categorical(y_validate))
+  validation_data=(X_validate, to_categorical(y_validate))
 )
 
 model.evaluate(
-  X_testingLast,
+  X_testing,
   to_categorical(y_testing)
 )
 
