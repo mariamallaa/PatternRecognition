@@ -23,23 +23,29 @@ from Features import *
 
 currentXlist=[]
 currentylist=[]
-f = open("C:\\Users\\Mariam Alaa\\Documents\\GitHub\\PatternRecognition\\Association\\training.txt", "r")
+k=1
+f = open("D:\\pattern dataset\\training.txt", "r")
 for x in f:
     temp= x.split(" ",1) #maxsplit
     
     mycurrentchar=io.imread("D:\\pattern dataset\\"+temp[0])
     gray = cv2.cvtColor(mycurrentchar, cv2.COLOR_BGR2GRAY)
     binary = cv2.threshold(gray, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    #print(binary.shape)
     #resized28 = cv2.resize(binary, (28,28))
     #features = np.ravel(resized28)
-    Feature_vec=Combine(binary)
-
+    #print(binary)
+    
+    Feature_vec=Combine(binary,k)
+    k+=1
     currentXlist.append(Feature_vec)
+    print(Feature_vec)
     y=temp[1].split("\n",1) #maxsplit
     currentylist.append(y[0])
 
 currentX=np.asarray(currentXlist)
 currenty=np.asarray(currentylist)
+print(currentX[0])
 X_train,X_test,y_train,y_test = train_test_split(currentX,currenty,test_size = 0.4,random_state=109)
 X_testing,X_validate,y_testing,y_validate = train_test_split(X_test,y_test,test_size = 0.5,random_state=109)
 '''
@@ -94,10 +100,10 @@ model.evaluate(
 
 # serialize model to JSON
 model_json = model.to_json()
-with open("model2.json", "w") as json_file:
+with open("model3.json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-model.save_weights("model2.h5")
+model.save_weights("model3.h5")
 print("Saved model to disk")
 
 

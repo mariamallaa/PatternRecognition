@@ -30,7 +30,7 @@ def Get_connected_comp(resized):
 
 def Find_holes(binary):
     holes=[]
-    contours, hierarchy=cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    _,contours, hierarchy=cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     for i in range(len(hierarchy[0])):
         if hierarchy[0][i][3] >= 0:
@@ -43,63 +43,162 @@ def Find_holes(binary):
         num_holes=Get_connected_comp(mask)
     return num_holes
 
-def chain_code_t(h):
+def chain_code_t(h,k):
+    
     output=[]
-    output = cv2.connectedComponentsWithStats(h.astype('uint8'), 4)
+
+    img=np.zeros([h.shape[0]+1,h.shape[1]+1])
+
+    img[1:img.shape[0],1:img.shape[1]]=h
+
+    img[0,:]=0
+
+    img[:,0]=0
+
+    img[h.shape[0],:]=0
+
+    img[:,h.shape[1]]=0
+
+    output = cv2.connectedComponentsWithStats(img.astype('uint8'), 8)
+
     stats=output[2]
+
     m=np.array(output[0]-1)
+
+    print(stats)
+
     m=stats[1::,4]
+    
+    labels=output[1]
+    #print(labels[0:27,0:27].astype('uint8'))
+ 
+
+    if(len(m)==0):
+
+        chain=[-1]*70
+
+        return chain
+
     ind = np.argmax(m)
+
+    x=stats[ind+1][1]
+
+    y=stats[ind+1][0]
+
+    for i in range(1,len(stats),1):
+
+        if stats[i][1]==x and stats[i][0]==y and i!=ind+1:
+
+            chain=[-1]*70
+
+            return chain
+
+ 
+
     start=stats[ind+1][1]
 
-    chain=[]
-    currenti=0
-    currentj=0
-    dir=[[0,1],[-1,0],[0,-1],[1,0]]
-    starti=0
-    startj=0
-    i=0
-    j=0
-    p=0
-    g=0
-    for j in range(h.shape[1]):
-            if(h[start][j]):
-                currenti=start
-                currentj=j
-                starti=start
-                startj=j
-                break           
-    i=3
-    chain.append(i)
-    indexi=0
-    indexj=0
+ 
     
+    chain=[]
+
+    currenti=0
+
+    currentj=0
+
+    dir=[[0,1],[-1,0],[0,-1],[1,0]]
+
+    starti=0
+
+    startj=0
+
+    i=0
+
+    j=0
+
+    p=0
+
+    g=0
+    
+
+    for j in range(img.shape[1]):
+
+            if(labels[start][j]==ind+1):
+                
+
+                currenti=start
+
+                currentj=j
+
+                starti=start
+
+                startj=j
+
+                break           
+
+    i=3
+
+    chain.append(i)
+
+    indexi=0
+
+    indexj=0
+
     while(1):
+
         if(i==4):
+
             i=0
-        if(h[int(currenti+dir[i][0])][int(currentj+dir[i][1])]):
+
+        if(currentj==0):
+
+            i=3
+
+        if(img[int(currenti+dir[i][0])][int(currentj+dir[i][1])]):
+
             chain.append(i)
+
             currenti=currenti+dir[i][0]
+
             currentj=currentj+dir[i][1]
+
             i=(i+3)%4
+
             g+=1
+
             if(g==69):
+
                 break
+
             if(currenti==starti and currentj==startj):
+
                 break
+
             if(currentj==0):
+
                 i=3
-            if(currentj==h.shape[1]-1):
+
+            if(currentj==img.shape[1]-1):
+
                 i=1
+
             continue
 
-        elif(h[(currenti+dir[i][0])][(currentj+dir[i][1])]==0):
+ 
+
+        elif(img[(currenti+dir[i][0])][(currentj+dir[i][1])]==0):
+
             i+=1
+
             continue
+
     if(g<69):
+
         for i in range(69-g):
+
             chain.append(-1)
+
     return(chain)
+
 
 def Get_secondary(binary,secondary):
     output=[]
@@ -133,7 +232,6 @@ def Get_main(binary,main):
     stats=output[2]
     m=np.array(output[0]-1)
     m=stats[1::,4]
-    print(stats)
     indmax = np.argmax(m)
     #area
     main.append(stats[indmax+1][4])
@@ -156,10 +254,18 @@ def Distribution(binary,main):
     return(main)
 
 
-def Combine(binary):
-    features=chain_code_t(binary)
+def Combine(binary,k):
+    
+    print(k)
+    features=chain_code_t(binary,k)
+    print("finished chaincode")
     featuresgetsec=Get_secondary(binary,features)
+    print("finish getsec")
     featuresgetsec.append(Find_holes(binary))
+    print("find holes")
     featuresgetsec=Get_main(binary,featuresgetsec)
+    print("find mains")
     featuresgetsec=Distribution(binary,featuresgetsec)
+    print("dist")
+    
     return(featuresgetsec)

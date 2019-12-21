@@ -131,9 +131,9 @@ def labeling(currentImg, words, path):
                 # binary = cv2.threshold(gray, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[
                 #     1
                 # ]
-                resized28 = resize(char, (28, 28))
+                #resized28 = resize(char, (28, 28))
                 # ret, bw_img = cv2.threshold(char,127,255,cv2.THRESH_BINARY)
-                pt.image.imsave(name, resized28)
+                pt.image.imsave(name, char)
 
                 f.write(name + " " + str(classes[currentindex]) + "\n")
                 currentindex += 1
