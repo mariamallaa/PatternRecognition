@@ -197,7 +197,7 @@ def character_segmentation(
     #         length -= 1
 
     #     i += 1
-
+    case2Flag = 0
     if len(regionsAndCuts) > 0:
         region = wordSkeleton[:, regionsAndCuts[0, 0] : regionsAndCuts[0, 1]]
         if np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :]):
@@ -208,6 +208,7 @@ def character_segmentation(
                 # print("no baseline")
                 if vp[regionsAndCuts[0, 2]] != 0:
                     print("case 2 successful")
+                    case2Flag = 1
                     regionsAndCuts = np.delete(regionsAndCuts, 0, 0)
         elif np.sum(region[baselineIndex + 1 :, :]) < np.sum(
             region[0:baselineIndex, :]
@@ -381,6 +382,14 @@ def character_segmentation(
                 i += 1
             else:
                 break
+    if len(strokesIndices) > 1 and len(cutIndices) > 3 and case2Flag == 1:
+        if (
+            2 in strokesIndices
+            and 3 in strokesIndices
+        ):
+            print("seen in the end of the word")
+            cutIndices = np.delete(cutIndices, [1, 2])
+
     # return [], regionsAndCuts[:, 2]
     return strokes, cutIndices
 

@@ -54,7 +54,7 @@ for i in range(len(lines_indices) - 1):
 # view.show()
 
 words = []
-for i in range(len(lines_indices) - 1):
+for i in range(0, len(lines_indices) - 1, 1):
     # finding baseline index for the entire line
     line = binary[lines_indices[i] : lines_indices[i + 1]]
     # line = skeletonize(line).astype(np.float)
@@ -99,11 +99,12 @@ for i in range(len(lines_indices) - 1):
         # cut[:, strokes] = 0.3
 
         # wordSkeleton[:, strokes] = 0.3
-        # wordSkeleton[:, cutIndices] = 0.5
-        # wordSkeleton[:, strokes] = 0.3
 
-        # view = ImageViewer(wordSkeleton)
-        # view.show()
+        wordSkeleton[:, strokes] = 0.3
+        wordSkeleton[:, cutIndices] = 0.5
+
+        view = ImageViewer(wordSkeleton)
+        view.show()
 
 
 words = np.asarray(words)
