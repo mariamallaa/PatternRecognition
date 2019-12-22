@@ -321,7 +321,12 @@ def character_segmentation(
                 cutIndices = np.delete(
                     cutIndices, [strokesIndices[i + 1], strokesIndices[i + 2]]
                 )
-                i += 2
+                strokesIndices.pop(i + 2)
+                strokesIndices.pop(i + 1)
+                strokesIndices.pop(i)
+
+                length -= 3
+                i -= 1
             i += 1
     if len(strokesIndices) > 1:
         length = len(strokesIndices)
@@ -357,10 +362,18 @@ def character_segmentation(
     if len(strokesIndices) > 0:
         i = 0
         while i < len(strokesIndices):
-            if ( len(strokesIndices) > 0 and len(cutIndices) > 2 and len(cutIndices) > len(strokesIndices) and len(cutIndices) > strokesIndices[i] + 2):
+            if (
+                len(strokesIndices) > 0
+                and len(cutIndices) > 2
+                and len(cutIndices) > len(strokesIndices)
+                and len(cutIndices) > strokesIndices[i] + 2
+            ):
                 if cutIndices[strokesIndices[i]] != wordSkeleton.shape[1] - 1:
                     previousSegment = wordSkeleton[
-                        :, cutIndices[strokesIndices[i]] : cutIndices[strokesIndices[i] + 1]
+                        :,
+                        cutIndices[strokesIndices[i]] : cutIndices[
+                            strokesIndices[i] + 1
+                        ],
                     ]
                     if Find_holes(previousSegment.astype("uint8")) != 0:
                         print("popped sad")
