@@ -271,6 +271,7 @@ def character_segmentation(
             cutIndices[i + 1] - cutIndices[i] <= 3
             or np.sum(wordSkeleton[:, cutIndices[i] : cutIndices[i + 1]]) <= 3
         ):
+            print("Removed unnecessary cuts")
             cutIndices = np.delete(cutIndices, i + 1)
             length -= 1
         i += 1
@@ -295,9 +296,15 @@ def character_segmentation(
                     if stats.mode(hpSegment).mode[0] == mvf:
                         print("thickness equal mode value")
                         if Find_holes(segment.astype("uint8")) == 0:
-                            print("successful segment")
-                            strokesIndices.append(i)
+                            print("no holes")
+                            if vpSegment[0]!=0:
+                                print("not dal, successful stroke!")
+                                strokesIndices.append(i)
     print(strokesIndices)
+
+    strokes = []
+    for i in range(len(strokesIndices)):
+        strokes.append(cutIndices[strokesIndices[i]])
 
     if len(strokesIndices) > 2:
 
@@ -310,16 +317,49 @@ def character_segmentation(
                 strokesIndices[i] - strokesIndices[i + 1] == 1
                 and strokesIndices[i] - strokesIndices[i + 2] == 2
             ):
-                print("popping")
+                print("popping seen")
                 cutIndices = np.delete(
                     cutIndices, [strokesIndices[i + 1], strokesIndices[i + 2]]
                 )
                 i += 2
             i += 1
+    if len(strokesIndices) > 1:
+        length = len(strokesIndices)
+        i = 0
+        while i <= length - 2:
+            if i > length - 2:
+                break
 
-    strokes = []
-    for i in range(len(strokesIndices)):
-        strokes.append(cutIndices[strokesIndices[i]])
+            if strokesIndices[i] - strokesIndices[i + 1] == 2:
+                print("possible sheen")
+
+                if (
+                    cv2.connectedComponentsWithStats(
+                        wordSkeleton[
+                            :,
+                            cutIndices[strokesIndices[i + 1]] : cutIndices[
+                                strokesIndices[i + 1] + 1
+                            ],
+                        ].astype("uint8"),
+                        8,
+                    )[0]
+                    >= 3
+                ):
+                    print("popping sheen")
+                    print("removing Indices",strokesIndices[i] -1,strokesIndices[i + 1] )
+                    cutIndices = np.delete(
+                        cutIndices, [strokesIndices[i] - 1, strokesIndices[i + 1]]
+                    )
+                    i += 1
+            i += 1
+    if len(strokesIndices)>0:
+        i=0
+        while i < len(strokesIndices):
+            if cutIndices[strokesIndices[i]]!= wordSkeleton.shape[1]-1:
+                previousSegment=wordSkeleton[:, cutIndices[strokesIndices[i]]:cutIndices[strokesIndices[i]+1] ]
+                if Find_holes(previousSegment.astype("uint8")) !=0 :
+                    print("popped sad")
+                    cutIndices=np.delete(cutIndices,strokesIndices[i])
 
     # return [], regionsAndCuts[:, 2]
     return strokes, cutIndices
