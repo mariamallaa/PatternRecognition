@@ -259,6 +259,22 @@ def character_segmentation(
     cutIndices = regionsAndCuts[:, 2]
     cutIndices = np.insert(cutIndices, 0, 0)
     cutIndices = np.append(cutIndices, wordSkeleton.shape[1] - 1)
+
+    # filtering small cut segments
+
+    i = 0
+    length = len(cutIndices) - 1
+    while i < length:
+        if i >= length:
+            break
+        if (
+            cutIndices[i + 1] - cutIndices[i] <= 3
+            or np.sum(wordSkeleton[:, cutIndices[i] : cutIndices[i + 1]]) <= 3
+        ):
+            cutIndices = np.delete(cutIndices, i + 1)
+            length -= 1
+        i += 1
+
     # getting strokes
     strokesIndices = []
     for i in range(len(cutIndices) - 1, 0, -1):
@@ -270,14 +286,9 @@ def character_segmentation(
             ):
                 print("below more than above")
                 hpSegment = np.sum(segment, axis=1)
-                hpSegment.sort()
-                print(
-                    "second highest value=",
-                    hpSegment[-2],
-                    "height=",
-                    np.max(np.sum(segment, axis=0)),
-                )
-                if np.max(np.sum(segment, axis=0)) <=1.5 * segment.shape[1]:
+                vpSegment = np.sum(segment, axis=0)
+                width = len(vpSegment[vpSegment != 0])
+                if np.max(np.sum(segment, axis=0)) <= 1.5 * width:
                     print("height within range")
                     hpSegment = hpSegment[hpSegment != 0]
 
@@ -286,6 +297,25 @@ def character_segmentation(
                         if Find_holes(segment.astype("uint8")) == 0:
                             print("successful segment")
                             strokesIndices.append(i)
+    print(strokesIndices)
+
+    if len(strokesIndices) > 2:
+
+        length = len(strokesIndices)
+        i = 0
+        while i <= length - 3:
+            if i > length - 3:
+                break
+            if (
+                strokesIndices[i] - strokesIndices[i + 1] == 1
+                and strokesIndices[i] - strokesIndices[i + 2] == 2
+            ):
+                print("popping")
+                cutIndices = np.delete(
+                    cutIndices, [strokesIndices[i + 1], strokesIndices[i + 2]]
+                )
+                i += 2
+            i += 1
 
     strokes = []
     for i in range(len(strokesIndices)):

@@ -98,10 +98,11 @@ for i in range(len(lines_indices) - 1):
         # cut = wordSkeleton.copy()
         # cut[:, strokes] = 0.3
 
-        # wordSkeleton[:, cutIndices] = 0.5
-        # wordSkeleton[:, strokes] = 0.3
-        # view = ImageViewer(wordSkeleton)
-        # view.show()
+        wordSkeleton[:, strokes] = 0.3
+        wordSkeleton[:, cutIndices] = 0.5
+        
+        view = ImageViewer(wordSkeleton)
+        view.show()
 
 
 words = np.asarray(words)
