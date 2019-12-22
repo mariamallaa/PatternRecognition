@@ -179,7 +179,7 @@ def character_segmentation(
         # )
 
     if len(regionsAndCuts) == 0:
-        return [], []
+        return [], [0, wordSkeleton.shape[1] - 1]
 
     regionsAndCuts = np.asarray(regionsAndCuts)
 
@@ -297,7 +297,7 @@ def character_segmentation(
                         print("thickness equal mode value")
                         if Find_holes(segment.astype("uint8")) == 0:
                             print("no holes")
-                            if vpSegment[0]!=0:
+                            if vpSegment[0] != 0:
                                 print("not dal, successful stroke!")
                                 strokesIndices.append(i)
     print(strokesIndices)
@@ -346,133 +346,28 @@ def character_segmentation(
                     >= 3
                 ):
                     print("popping sheen")
-                    print("removing Indices",strokesIndices[i] -1,strokesIndices[i + 1] )
+                    print(
+                        "removing Indices", strokesIndices[i] - 1, strokesIndices[i + 1]
+                    )
                     cutIndices = np.delete(
                         cutIndices, [strokesIndices[i] - 1, strokesIndices[i + 1]]
                     )
                     i += 1
             i += 1
-    if len(strokesIndices)>0:
-        i=0
+    if len(strokesIndices) > 0:
+        i = 0
         while i < len(strokesIndices):
-            if cutIndices[strokesIndices[i]]!= wordSkeleton.shape[1]-1:
-                previousSegment=wordSkeleton[:, cutIndices[strokesIndices[i]]:cutIndices[strokesIndices[i]+1] ]
-                if Find_holes(previousSegment.astype("uint8")) !=0 :
-                    print("popped sad")
-                    cutIndices=np.delete(cutIndices,strokesIndices[i])
-
+            if ( len(strokesIndices) > 0 and len(cutIndices) > 2 and len(cutIndices) > len(strokesIndices) and len(cutIndices) > strokesIndices[i] + 2):
+                if cutIndices[strokesIndices[i]] != wordSkeleton.shape[1] - 1:
+                    previousSegment = wordSkeleton[
+                        :, cutIndices[strokesIndices[i]] : cutIndices[strokesIndices[i] + 1]
+                    ]
+                    if Find_holes(previousSegment.astype("uint8")) != 0:
+                        print("popped sad")
+                        cutIndices = np.delete(cutIndices, strokesIndices[i])
+                i += 1
+            else:
+                break
     # return [], regionsAndCuts[:, 2]
     return strokes, cutIndices
 
-    i = 0
-    length = separationIndices.shape[0]
-    lastflag = 1
-    while i < length:
-        if i == length:
-            break
-        region = wordSkeleton[:, regionsAndCuts[i][0] : regionsAndCuts[i][1]]
-
-        # if i == 0:
-        #     viewer = ImageViewer(region)
-        #     viewer.show()
-
-        # case ii in paper
-        if (
-            np.sum(region[baselineIndex + 1 :, :]) > np.sum(region[0:baselineIndex, :])
-            and i == 0
-            and lastflag == 1
-        ):
-            print("below more than above")
-            region = region[:, 1:]
-            hpRegion = np.sum(region, axis=1)
-            if hpRegion[baselineIndex] == 0:
-                print("no baseline", i)
-                regionsAndCuts.pop(i)
-                i -= 1
-                length -= 1
-        # case iii in paper
-        # epic fail
-        elif (
-            i == 0
-            and lastflag == 1
-            and np.sum(wordSkeleton[:baselineIndex, :])
-            > np.sum(wordSkeleton[baselineIndex + 1, :])
-        ):
-            # getting top left index wared gedan yekon ghalat
-            # region = wordSkeleton[:, regionsAndCuts[i][0] - 3 : regionsAndCuts[i][1]]
-
-            breakflag = 0
-            topleft = baselineIndex
-            for m in range(region.shape[1]):
-                for n in range(baselineIndex):
-                    print("column", regionsAndCuts[i][0] + m, "row", n)
-                    if region[n, m] != 0:
-                        topleft = n
-                        breakflag = 1
-                        break
-                if breakflag == 1:
-                    break
-
-            print(
-                "check case 3: topleft=", topleft, "start index=", regionsAndCuts[i][0]
-            )
-            if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-                print("case 3 successful")
-                regionsAndCuts.pop(i)
-                i -= 1
-                length -= 1
-
-        if i <= 0:
-            lastflag = 0
-        i += 1
-
-    # strokes detection
-    regionsAndCuts = np.asarray(regionsAndCuts)
-    cutIndices = regionsAndCuts[:, 2]
-    cutIndices = list(dict.fromkeys(cutIndices))
-    # adding cut indices at beginning and end to be able to cut image
-    cutIndices.insert(0, 0)
-    if np.sum(wordSkeleton[:, cutIndices[-1] : wordSkeleton.shape[1]]) > 3:
-        cutIndices.append(wordSkeleton.shape[1] - 1)
-    # removing small characters
-
-    length = len(cutIndices) - 1
-    z = 0
-    while z < length:
-        if z == length:
-            break
-        if np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]]) < 4:
-            print("smaller then 4")
-            cutIndices.pop(z)
-            z -= 1
-            length -= 1
-        elif cutIndices[z + 1] - cutIndices[z] < 4:
-            print("too tiny")
-            cutIndices.pop(z)
-            z -= 1
-            length -= 1
-        elif (
-            np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]]) < 7
-            and len(
-                np.sum(wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]], axis=0)[
-                    np.sum(
-                        wordSkeleton[:, cutIndices[z] + 1 : cutIndices[z + 1]], axis=0
-                    )
-                    != 0
-                ]
-            )
-            == 1
-        ):
-            print("short single line")
-            cutIndices.pop(z)
-            z -= 1
-            length -= 1
-        z += 1
-
-    print("baselineindex", baselineIndex)
-    strokesIndices = []
-    length = len(cutIndices) - 1
-
-    strokes = []
-
-    return strokes, cutIndices
