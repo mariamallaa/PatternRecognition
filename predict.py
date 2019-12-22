@@ -18,24 +18,27 @@ from ModelPrediction import *
 
 from SVMLoader import *
 from Features import *
+import time
 
 
+print("hi")
 # change it lel directory beta3 input
 
 # load json and create model
-json_file = open('model2.json', 'r')
+json_file = open('model4.json', 'r')
 loaded_model_json = json_file.read()
 json_file.close()
 loaded_model = model_from_json(loaded_model_json)
 # load weights into new model
-loaded_model.load_weights("model2.h5")
+loaded_model.load_weights("model4.h5")
 
 
     
 # evaluate loaded model on test data
 loaded_model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
 
-scanned_path = "C:\\Users\\Mariam Alaa\\Documents\\GitHub\\PatternRecognition\\scanned"
+
+scanned_path = "C:\\Users\\Mariam Alaa\\Documents\\GitHub\\new\\PatternRecognition\\scanned"
 scanned_files = []
 # r=root, d=directories, f = files
 for r, d, f in os.walk(scanned_path):
@@ -77,13 +80,15 @@ characterlist = [
 running_time = open("output\\running_time.txt", "a+")
 for i in range(len(scanned_files)):
     print("img:", i)
-    start = datetime.now()
+    #start = datetime.now()
+    start_time = time.time()
     # reading the image and segmenting into words and characters
     words = segment(scanned_files[i])
     words=np.asarray(words)
     index=1
-
-    f = open("output\\test\\test_enhanced" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+    f = open("output\\test\\yarab_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+    #f = open("output\\test\\test_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+    generatedWords=[]
     for j in range(len(words)):
         generatedWord = ""
         word = words[j, 0]
@@ -91,13 +96,10 @@ for i in range(len(scanned_files)):
         cut_indices = words[j, 1]
         for k in range(len(cut_indices)-1,0,-1):
             letter = word[:, cut_indices[k - 1] : cut_indices[k]]
-            #print(letter)
            
             resized28 = cv2.resize(letter, (28, 28),interpolation = cv2.INTER_NEAREST)
 
-            
-            #binary=cv2.threshold(newresized, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-            
+
             features = np.ravel(resized28.astype('uint8'))
 
             #features=Combine(letter.astype('uint8'))
@@ -114,18 +116,29 @@ for i in range(len(scanned_files)):
 
 
 
-
-            
-            #letter_class = predict([features],loaded_model)
             #letter_class = PredictSVM([features])
-            #print(letter_class)
-            #print(letter_class)
-            #show_images([letter])
+            
             generatedWord+=characterlist[letter_class[0]]
-            #print(generatedWord)
-        f.write(generatedWord+" ")
+            
+        #f.write(generatedWord+" ")
+        generatedWords.append(generatedWord+" ")
         print(index)
         index+=1
         generatedWord=""
-    end=datetime.now()
-    running_time.write(str(end-start)+"\n")
+
+    #end=datetime.now()
+    running_time.write(str(time.time() - start_time)+"\n")
+    
+    for ind in range(len(generatedWords)):
+        f.write(generatedWords[ind])
+    f.close()
+    
+
+
+
+
+
+
+
+
+

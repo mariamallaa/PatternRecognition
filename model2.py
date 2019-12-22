@@ -72,8 +72,6 @@ model.compile(
 )
 
 
-print("len(X_validate)")
-
 model.fit(
   X_trainLast,
   to_categorical(y_train),
