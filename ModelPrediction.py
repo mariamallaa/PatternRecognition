@@ -17,14 +17,20 @@ from skimage import io
 from commonfunctions import *
 import cv2
 import csv
-def predict(features,loaded_model):
+def predict(features):
 
 
     #features = sc.fit_transform(features)
 
     
     ohe = OneHotEncoder()
-    
+    # load json and create model
+    json_file = open('model2.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights("model2.h5")
     
     # evaluate loaded model on test data
     loaded_model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
