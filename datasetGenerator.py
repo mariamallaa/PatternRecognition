@@ -19,7 +19,7 @@ from scipy import stats
 
 #
 
-text_path = "C:\\Users\\Mariam Alaa\\Documents\\GitHub\\PatternRecognition\\text"
+text_path = "D:\\dataset\\text\\text"
 
 text_files = []
 # r=root, d=directories, f = files
@@ -29,7 +29,7 @@ for r, d, f in os.walk(text_path):
             text_files.append(os.path.join(r, file))
 
 
-scanned_path = "C:\\Users\\Mariam Alaa\\Documents\\GitHub\\PatternRecognition\\scanned"
+scanned_path = "D:\\dataset\\scanned\\scanned"
 scanned_files = []
 # r=root, d=directories, f = files
 for r, d, f in os.walk(scanned_path):

@@ -428,7 +428,7 @@ def character_segmentation(
             if hpRegion[baselineIndex] == 0:
                 # print("no baseline")
                 if vp[regionsAndCuts[0, 2]] != 0:
-                    print("case 2 successful")
+                    #print("case 2 successful")
                     regionsAndCuts = np.delete(regionsAndCuts, 0, 0)
         elif np.sum(region[baselineIndex + 1 :, :]) < np.sum(
             region[0:baselineIndex, :]
@@ -465,7 +465,7 @@ def character_segmentation(
             #     regionsAndCuts[0, 0],
             # )
             if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
-                print("Smaller->vp at cut=", vp[regionsAndCuts[0, 2]], "and mfv=", mvf)
+                #print("Smaller->vp at cut=", vp[regionsAndCuts[0, 2]], "and mfv=", mvf)
                 # if vp[regionsAndCuts[0, 2]] != 0 and vp[regionsAndCuts[0, 2]] != mvf:
                 if (
                     vp[regionsAndCuts[0, 2]] != 0
@@ -474,7 +474,7 @@ def character_segmentation(
                     )
                     == 0
                 ):
-                    print("case 3 successful")
+                    #print("case 3 successful")
                     regionsAndCuts = np.delete(regionsAndCuts, 0, 0)
 
     cutIndices = regionsAndCuts[:, 2]
@@ -492,7 +492,7 @@ def character_segmentation(
             cutIndices[i + 1] - cutIndices[i] <= 3
             or np.sum(wordSkeleton[:, cutIndices[i] : cutIndices[i + 1]]) <= 3
         ):
-            print("Removed unnecessary cuts")
+            #print("Removed unnecessary cuts")
             cutIndices = np.delete(cutIndices, i + 1)
             length -= 1
         i += 1
@@ -502,26 +502,26 @@ def character_segmentation(
     for i in range(len(cutIndices) - 1, 0, -1):
         segment = wordSkeleton[:, cutIndices[i - 1] : cutIndices[i]]
         if cv2.connectedComponentsWithStats(segment.astype("uint8"), 8,)[0] == 2:
-            print("single connected compnent")
+            #print("single connected compnent")
             if np.sum(segment[:baselineIndex, :]) > np.sum(
                 segment[baselineIndex + 1 :, :]
             ):
-                print("below more than above")
+                #print("below more than above")
                 hpSegment = np.sum(segment, axis=1)
                 vpSegment = np.sum(segment, axis=0)
                 width = len(vpSegment[vpSegment != 0])
                 if np.max(np.sum(segment, axis=0)) <= 1.5 * width:
-                    print("height within range")
+                    #print("height within range")
                     hpSegment = hpSegment[hpSegment != 0]
 
                     if stats.mode(hpSegment).mode[0] == mvf:
-                        print("thickness equal mode value")
+                        #print("thickness equal mode value")
                         if Find_holes(segment.astype("uint8")) == 0:
-                            print("no holes")
+                            #print("no holes")
                             if vpSegment[0] != 0:
-                                print("not dal, successful stroke!")
+                                #print("not dal, successful stroke!")
                                 strokesIndices.append(i)
-    print(strokesIndices)
+    #print(strokesIndices)
 
     strokes = []
     for i in range(len(strokesIndices)):
@@ -538,7 +538,7 @@ def character_segmentation(
                 strokesIndices[i] - strokesIndices[i + 1] == 1
                 and strokesIndices[i] - strokesIndices[i + 2] == 2
             ):
-                print("popping seen")
+                #print("popping seen")
                 cutIndices = np.delete(
                     cutIndices, [strokesIndices[i + 1], strokesIndices[i + 2]]
                 )
@@ -557,7 +557,7 @@ def character_segmentation(
                 break
 
             if strokesIndices[i] - strokesIndices[i + 1] == 2:
-                print("possible sheen")
+                #print("possible sheen")
 
                 if (
                     cv2.connectedComponentsWithStats(
@@ -571,10 +571,10 @@ def character_segmentation(
                     )[0]
                     >= 3
                 ):
-                    print("popping sheen")
-                    print(
-                        "removing Indices", strokesIndices[i] - 1, strokesIndices[i + 1]
-                    )
+                    #print("popping sheen")
+                    #print(
+                    #   "removing Indices", strokesIndices[i] - 1, strokesIndices[i + 1]
+                    #)
                     cutIndices = np.delete(
                         cutIndices, [strokesIndices[i] - 1, strokesIndices[i + 1]]
                     )
@@ -597,7 +597,7 @@ def character_segmentation(
                         ],
                     ]
                     if Find_holes(previousSegment.astype("uint8")) != 0:
-                        print("popped sad")
+                        #print("popped sad")
                         cutIndices = np.delete(cutIndices, strokesIndices[i])
                 i += 1
             else:

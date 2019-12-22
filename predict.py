@@ -25,12 +25,12 @@ print("hi")
 # change it lel directory beta3 input
 
 # load json and create model
-json_file = open('model4.json', 'r')
+json_file = open('model5.json', 'r')
 loaded_model_json = json_file.read()
 json_file.close()
 loaded_model = model_from_json(loaded_model_json)
 # load weights into new model
-loaded_model.load_weights("model4.h5")
+loaded_model.load_weights("model5.h5")
 
 
     
@@ -86,7 +86,7 @@ for i in range(len(scanned_files)):
     words = segment(scanned_files[i])
     words=np.asarray(words)
     index=1
-    f = open("output\\test\\yarab_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
+    f = open("output\\test\\please_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
     #f = open("output\\test\\test_" + str(i + 1) + ".txt", "a+", encoding="utf-8")
     generatedWords=[]
     for j in range(len(words)):

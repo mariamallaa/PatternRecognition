@@ -91,7 +91,7 @@ def labeling(currentImg, words, path):
 
     mycurrentindex = 0
 
-    namefile = "training"
+    namefile = "training2"
     f = open("Association\\" + namefile + ".txt", "a+")
     currentword = 1
     for word in words:

@@ -3,3 +3,7 @@ C:\Users\Mariam Alaa\Documents\GitHub\PatternRecognition\scanned\capr6.png
 C:\Users\Mariam Alaa\Documents\GitHub\PatternRecognition\scanned\csep1634.png
 C:\Users\Mariam Alaa\Documents\GitHub\PatternRecognition\scanned\csep1635.png
 C:\Users\Mariam Alaa\Documents\GitHub\PatternRecognition\scanned\csep1638.png
+D:\dataset\scanned\scanned\capr1126.png
+D:\dataset\scanned\scanned\capr1252.png
+D:\dataset\scanned\scanned\capr1284.png
+D:\dataset\scanned\scanned\capr1341.png

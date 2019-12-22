@@ -23,7 +23,7 @@ import csv
 
 currentXlist=[]
 currentylist=[]
-f = open("D:\\dataset\\training.txt", "r")
+f = open("Association\\training2.txt", "r")
 k=1
 for x in f:
     temp= x.split(" ",1) #maxsplit
@@ -88,10 +88,10 @@ model.evaluate(
 
 # serialize model to JSON
 model_json = model.to_json()
-with open("model4.json", "w") as json_file:
+with open("model5.json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-model.save_weights("model4.h5")
+model.save_weights("model5.h5")
 print("Saved model to disk")
 
 
