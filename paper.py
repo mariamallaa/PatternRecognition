@@ -204,9 +204,11 @@ def character_segmentation(
 
             region = region[:, 1:]
             hpRegion = np.sum(region, axis=1)
+
             if hpRegion[baselineIndex] == 0:
                 # print("no baseline")
                 if vp[regionsAndCuts[0, 2]] != 0:
+                    # print("baseline=",baselineIndex,"regionstart=",regionsAndCuts[0,0],"regionend=",regionsAndCuts[0,1])
                     print("case 2 successful")
                     case2Flag = 1
                     regionsAndCuts = np.delete(regionsAndCuts, 0, 0)
@@ -231,19 +233,7 @@ def character_segmentation(
                         break
                 if breakflag == 1:
                     break
-            # print("start", start + regionsAndCuts[0, 0], "stop", stop)
-            # print(
-            #     "check case 3: baseline=",
-            #     baselineIndex,
-            #     "stop=",
-            #     stop,
-            #     "topleft=",
-            #     m,
-            #     ",",
-            #     topleft,
-            #     "start index=",
-            #     regionsAndCuts[0, 0],
-            # )
+            
             if baselineIndex - topleft < 0.5 * (baselineIndex - topIndex):
                 print("Smaller->vp at cut=", vp[regionsAndCuts[0, 2]], "and mfv=", mvf)
                 # if vp[regionsAndCuts[0, 2]] != 0 and vp[regionsAndCuts[0, 2]] != mvf:
@@ -383,10 +373,7 @@ def character_segmentation(
             else:
                 break
     if len(strokesIndices) > 1 and len(cutIndices) > 3 and case2Flag == 1:
-        if (
-            2 in strokesIndices
-            and 3 in strokesIndices
-        ):
+        if 2 in strokesIndices and 3 in strokesIndices:
             print("seen in the end of the word")
             cutIndices = np.delete(cutIndices, [1, 2])
 

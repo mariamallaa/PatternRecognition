@@ -17,13 +17,15 @@ from skimage.morphology import thin, skeletonize
 from scipy import stats
 
 # reading the image
-img = io.imread("scanned\capr2.png")
+img = io.imread("scanned\capr12.png")
 
 #
 # img = io.imread("scanned\csep1638.png")
 
 # skew correct with bounding rect
 corrected = correct_skew(img)
+# view = CollectionViewer([img, corrected])
+# view.show()
 # blur = cv2.GaussianBlur(corrected, (3, 3), 0)
 ret2, th2 = cv2.threshold(corrected, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 binary = th2 / 255
@@ -57,6 +59,7 @@ words = []
 for i in range(0, len(lines_indices) - 1, 1):
     # finding baseline index for the entire line
     line = binary[lines_indices[i] : lines_indices[i + 1]]
+    #line = 1 - correct_skew(1 - line)
     # line = skeletonize(line).astype(np.float)
     projection = np.sum(line, axis=1)
     # line = line[projection != 0]
@@ -88,6 +91,7 @@ for i in range(0, len(lines_indices) - 1, 1):
         word = line[
             :, separators[i][j - 1] : separators[i][j],
         ]
+        #word=1-correct_skew(1-word)
         wordSkeleton = skeletonize(word).astype(np.float)
         # character segmentation for a word
         # wordSkeleton = skeletonize(word).astype(np.float)
@@ -100,15 +104,15 @@ for i in range(0, len(lines_indices) - 1, 1):
 
         # wordSkeleton[:, strokes] = 0.3
 
-        wordSkeleton[:, strokes] = 0.3
-        wordSkeleton[:, cutIndices] = 0.5
+        # wordSkeleton[:, strokes] = 0.3
+        # wordSkeleton[:, cutIndices] = 0.5
 
-        view = ImageViewer(wordSkeleton)
-        view.show()
+        # view = ImageViewer(wordSkeleton)
+        # view.show()
 
 
 words = np.asarray(words)
-segmentation_accuracy("text\capr2.txt", words[:, 1])
+segmentation_accuracy("text\capr12.txt", words[:, 1])
 
 # segmentation_accuracy("text\csep1638.txt", words[:, 1])
 # printWord = word.copy()
