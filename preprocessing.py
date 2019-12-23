@@ -4,6 +4,25 @@ from scipy import stats
 import cv2
 
 
+def adjust_tilt(img):
+    bin_img = img.copy()
+    bin_img = 1 - (bin_img / 255.0)
+
+    delta = 0.2
+    limit = 5
+    angles = np.arange(-limit, limit + delta, delta)
+    scores = []
+    for angle in angles:
+        score = find_score(bin_img, angle)
+        scores.append(score)
+
+    best_score = max(scores)
+    best_angle = angles[scores.index(best_score)]
+    corrected_img = inter.rotate(bin_img, best_angle, reshape=False, order=0)
+
+    return corrected_img
+
+
 def correct_skew(img):
     thresh = img.copy()
     thresh = 1 - (thresh / 255)

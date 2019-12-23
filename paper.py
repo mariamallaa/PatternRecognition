@@ -4,7 +4,23 @@ from scipy import stats
 import cv2
 from skimage.viewer import ImageViewer
 
+def adjust_tilt(img):
+    bin_img=img.copy()
+    bin_img = 1 - (bin_img / 255.0)
 
+    delta = 0.2
+    limit = 5
+    angles = np.arange(-limit, limit+delta, delta)
+    scores = []
+    for angle in angles:
+        score = find_score(bin_img, angle)
+        scores.append(score)
+
+    best_score = max(scores)
+    best_angle = angles[scores.index(best_score)]
+    corrected_img = inter.rotate(bin_img, best_angle, reshape=False, order=0)
+
+    return corrected_img
 def Find_holes(binary):
     holes = []
     contours, hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
